@@ -6,6 +6,7 @@ const healthRoutes = require('./health.routes');
 const authRoutes = require('./auth.routes');
 const userRoutes = require('./users.routes');
 const rentalRoutes = require('./rentals.routes');
+const bookingsRoutes = require('./bookings.routes');
 
 /**
  * API Routes Aggregator
@@ -25,7 +26,7 @@ router.use('/users', userRoutes);
 // Rentals
 router.use('/rentals', rentalRoutes);
 
-// TODO: Add more routes as we build them
-// router.use('/bookings', bookingRoutes);
+// Bookings
+router.use('/bookings', bookingsRoutes);
 
 module.exports = router;

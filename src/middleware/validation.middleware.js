@@ -220,6 +220,54 @@ const validateRentalUpdate = [
     handleValidationErrors,
 ];
 
+/**
+ * Validate booking creation
+ */
+const validateBooking = [
+    body('rentalId')
+        .trim()
+        .notEmpty()
+        .isUUID()
+        .withMessage('Valid rental ID is required'),
+
+    body('checkInDate')
+        .notEmpty()
+        .withMessage('Check-in date is required')
+        .isISO8601()
+        .withMessage('Invalid check-in date format')
+        .custom((value) => {
+            const checkIn = new Date(value);
+            const today = new Date();
+            today.setHours(0, 0, 0, 0); // Reset time part for accurate comparison
+
+            if (checkIn < today) {
+                throw new Error('Check-in date cannot be in the past');
+            }
+            return true;
+        }),
+
+    body('checkOutDate')
+        .notEmpty()
+        .withMessage('Check-out date is required')
+        .isISO8601()
+        .withMessage('Invalid check-out date format')
+        .custom((value, { req }) => {
+            const checkOut = new Date(value);
+            const checkIn = new Date(req.body.checkInDate);
+
+            if (checkOut <= checkIn) {
+                throw new Error('Check-out date must be after check-in date');
+            }
+            return true;
+        }),
+
+    body('numberOfGuests')
+        .isInt({ min: 1 })
+        .withMessage('Number of guests must be at least 1'),
+
+    handleValidationErrors,
+];
+
 module.exports = {
     validateRegistration,
     validateProfileUpdate,
@@ -228,5 +276,6 @@ module.exports = {
     validatePagination,
     validateRentalCreate,
     validateRentalUpdate,
+    validateBooking,
     handleValidationErrors,
 };
