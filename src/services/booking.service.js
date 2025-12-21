@@ -1,6 +1,6 @@
 const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
-const { NotFoundError, BadRequestError, ForbiddenError, ConflictError } = require('../middleware/error.middleware');
+const { NotFoundError, BadRequestError, ForbiddenError, ConflictError } = require('../utils/customErrors');
 
 /**
  * Check if a rental is available for the given dates
