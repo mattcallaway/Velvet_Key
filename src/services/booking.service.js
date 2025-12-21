@@ -71,7 +71,6 @@ function calculatePricing(rental, checkIn, checkOut, guests) {
         subtotal,
         cleaningFee,
         serviceFee,
-        securityDeposit,
         totalPrice,
     };
 }
