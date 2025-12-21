@@ -1,4 +1,4 @@
-const { auth } = require('../config/firebase');
+const { auth, firebaseInitialized } = require('../config/firebase');
 
 /**
  * Firebase Authentication Middleware
@@ -14,6 +14,15 @@ const { auth } = require('../config/firebase');
  */
 async function verifyFirebaseToken(req, res, next) {
     try {
+        // Check if Firebase is initialized
+        if (!firebaseInitialized || !auth) {
+            return res.status(503).json({
+                success: false,
+                error: 'Authentication service unavailable',
+                message: 'Firebase is not configured. Please contact the administrator.',
+            });
+        }
+
         // Extract token from Authorization header
         const authHeader = req.headers.authorization;
 
@@ -69,6 +78,11 @@ async function verifyFirebaseToken(req, res, next) {
  */
 async function optionalAuth(req, res, next) {
     try {
+        // Skip if Firebase not initialized
+        if (!firebaseInitialized || !auth) {
+            return next();
+        }
+
         const authHeader = req.headers.authorization;
 
         if (authHeader && authHeader.startsWith('Bearer ')) {
