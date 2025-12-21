@@ -105,5 +105,6 @@ async function optionalAuth(req, res, next) {
 
 module.exports = {
     verifyFirebaseToken,
+    authenticate: verifyFirebaseToken,
     optionalAuth,
 };
