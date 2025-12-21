@@ -6,6 +6,7 @@ package-lock.json
 .env
 .env.local
 .env.*.local
+firebase-service-account.json
 
 # Uploads
 uploads/
