@@ -1,0 +1,203 @@
+// This is your Prisma schema file
+// Learn more: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id                String    @id @default(uuid())
+  email             String    @unique
+  passwordHash      String
+  role              UserRole  @default(GUEST)
+  
+  // Profile
+  firstName         String
+  lastName          String
+  dateOfBirth       DateTime
+  phoneNumber       String?
+  bio               String?
+  profileImageUrl   String?
+  
+  // Verification & Trust
+  emailVerified     Boolean   @default(false)
+  phoneVerified     Boolean   @default(false)
+  identityVerified  Boolean   @default(false)
+  identityProvider  String?
+  identityVerifiedAt DateTime?
+  
+  // Metadata
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+  lastLoginAt       DateTime?
+  
+  // Relations
+  ownedRentals      Rental[]  @relation("HostRentals")
+  bookings          Booking[] @relation("GuestBookings")
+  reviewsWritten    Review[]  @relation("ReviewAuthor")
+  reviewsReceived   Review[]  @relation("ReviewSubject")
+  
+  @@index([email])
+  @@index([role])
+}
+
+enum UserRole {
+  GUEST
+  HOST
+  ADMIN
+}
+
+model Rental {
+  id                String    @id @default(uuid())
+  hostId            String
+  
+  // Basic Info
+  title             String
+  description       String
+  propertyType      PropertyType
+  
+  // Location
+  addressLine1      String
+  addressLine2      String?
+  city              String
+  state             String
+  zipCode           String
+  country           String   @default("US")
+  latitude          Float?
+  longitude         Float?
+  
+  // Capacity & Rules
+  maxGuests         Int
+  bedrooms          Int
+  bathrooms         Float
+  minimumAge        Int      @default(21)
+  
+  // Pricing
+  pricePerNight     Decimal  @db.Decimal(10, 2)
+  cleaningFee       Decimal? @db.Decimal(10, 2)
+  securityDeposit   Decimal? @db.Decimal(10, 2)
+  
+  // Amenities (JSON for flexibility)
+  amenities         Json     @default("[]")
+  houseRules        Json     @default("[]")
+  
+  // Images
+  images            Json     @default("[]")
+  
+  // Status
+  isActive          Boolean  @default(true)
+  isApproved        Boolean  @default(false)
+  
+  // Metadata
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+  
+  // Relations
+  host              User     @relation("HostRentals", fields: [hostId], references: [id])
+  bookings          Booking[]
+  reviews           Review[]
+  
+  @@index([hostId])
+  @@index([isActive, isApproved])
+  @@index([city, state])
+}
+
+enum PropertyType {
+  HOUSE
+  APARTMENT
+  CONDO
+  VILLA
+  CABIN
+  ESTATE
+  OTHER
+}
+
+model Booking {
+  id                String        @id @default(uuid())
+  rentalId          String
+  guestId           String
+  
+  // Dates
+  checkInDate       DateTime
+  checkOutDate      DateTime
+  
+  // Guests
+  numberOfGuests    Int
+  
+  // Pricing Snapshot
+  pricePerNight     Decimal       @db.Decimal(10, 2)
+  numberOfNights    Int
+  subtotal          Decimal       @db.Decimal(10, 2)
+  cleaningFee       Decimal       @db.Decimal(10, 2)
+  serviceFee        Decimal       @db.Decimal(10, 2)
+  totalPrice        Decimal       @db.Decimal(10, 2)
+  
+  // Status
+  status            BookingStatus @default(PENDING)
+  
+  // Special Requests
+  guestMessage      String?
+  
+  // Metadata
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @updatedAt
+  cancelledAt       DateTime?
+  cancellationReason String?
+  
+  // Relations
+  rental            Rental        @relation(fields: [rentalId], references: [id])
+  guest             User          @relation("GuestBookings", fields: [guestId], references: [id])
+  review            Review?
+  
+  @@index([rentalId])
+  @@index([guestId])
+  @@index([status])
+  @@index([checkInDate, checkOutDate])
+}
+
+enum BookingStatus {
+  PENDING
+  CONFIRMED
+  CANCELLED
+  COMPLETED
+  DECLINED
+}
+
+model Review {
+  id                String   @id @default(uuid())
+  bookingId         String   @unique
+  rentalId          String
+  authorId          String
+  subjectId         String
+  
+  // Review Content
+  rating            Int
+  comment           String?
+  
+  // Review Type
+  reviewType        ReviewType
+  
+  // Metadata
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+  
+  // Relations
+  booking           Booking  @relation(fields: [bookingId], references: [id])
+  rental            Rental   @relation(fields: [rentalId], references: [id])
+  author            User     @relation("ReviewAuthor", fields: [authorId], references: [id])
+  subject           User     @relation("ReviewSubject", fields: [subjectId], references: [id])
+  
+  @@index([rentalId])
+  @@index([authorId])
+  @@index([subjectId])
+}
+
+enum ReviewType {
+  GUEST_TO_HOST
+  HOST_TO_GUEST
+}
