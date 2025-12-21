@@ -35,23 +35,13 @@ app.get('/health', (req, res) => {
     });
 });
 
+// Error handling middleware (must be last)
+const { notFoundHandler, errorHandler } = require('./middleware/error.middleware');
+
 // 404 handler
-app.use((req, res) => {
-    res.status(404).json({
-        success: false,
-        error: 'Route not found',
-    });
-});
+app.use(notFoundHandler);
 
 // Global error handler
-app.use((err, req, res, next) => {
-    console.error('Global error handler:', err);
-
-    res.status(err.status || 500).json({
-        success: false,
-        error: err.message || 'Internal server error',
-        ...(process.env.NODE_ENV === 'development' && { stack: err.stack }),
-    });
-});
+app.use(errorHandler);
 
 module.exports = app;

@@ -4,6 +4,7 @@ const router = express.Router();
 // Import route modules
 const healthRoutes = require('./health.routes');
 const authRoutes = require('./auth.routes');
+const userRoutes = require('./users.routes');
 
 /**
  * API Routes Aggregator
@@ -17,8 +18,10 @@ router.use('/health', healthRoutes);
 // Authentication
 router.use('/auth', authRoutes);
 
+// Users
+router.use('/users', userRoutes);
+
 // TODO: Add more routes as we build them
-// router.use('/users', userRoutes);
 // router.use('/rentals', rentalRoutes);
 // router.use('/bookings', bookingRoutes);
 
