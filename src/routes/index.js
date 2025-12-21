@@ -29,4 +29,8 @@ router.use('/rentals', rentalRoutes);
 // Bookings
 router.use('/bookings', bookingsRoutes);
 
+// Reviews (Routes handle their own paths)
+const reviewsRoutes = require('./reviews.routes');
+router.use('/', reviewsRoutes);
+
 module.exports = router;

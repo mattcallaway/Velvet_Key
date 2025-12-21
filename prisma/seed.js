@@ -19,6 +19,7 @@ async function main() {
     const adminUser = await prisma.user.create({
         data: {
             email: 'admin@velvetkey.com',
+            firebaseUid: 'seed-admin-uid',
             passwordHash,
             role: 'ADMIN',
             firstName: 'Admin',
@@ -33,6 +34,7 @@ async function main() {
     const hostUser = await prisma.user.create({
         data: {
             email: 'host@example.com',
+            firebaseUid: 'seed-host-uid',
             passwordHash,
             role: 'HOST',
             firstName: 'Sarah',
@@ -50,6 +52,7 @@ async function main() {
     const guestUser = await prisma.user.create({
         data: {
             email: 'guest@example.com',
+            firebaseUid: 'seed-guest-uid',
             passwordHash,
             role: 'GUEST',
             firstName: 'Michael',
