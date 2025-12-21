@@ -33,12 +33,25 @@ async function testFirebaseConnection() {
 
         // Initialize Firebase Admin
         console.log('2. Initializing Firebase Admin SDK...');
-        admin.initializeApp({
-            credential: admin.credential.cert({
+        let credential;
+        const fs = require('fs');
+        const path = require('path');
+        const serviceAccountPath = path.join(__dirname, 'firebase-service-account.json');
+
+        if (fs.existsSync(serviceAccountPath)) {
+            console.log('✅ Found firebase-service-account.json');
+            credential = admin.credential.cert(require(serviceAccountPath));
+        } else {
+            console.log('⚠️  JSON file not found, falling back to environment variables');
+            credential = admin.credential.cert({
                 projectId: process.env.FIREBASE_PROJECT_ID,
                 privateKey: process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, '\n'),
                 clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
-            }),
+            });
+        }
+
+        admin.initializeApp({
+            credential,
             storageBucket: process.env.FIREBASE_STORAGE_BUCKET,
         });
 
