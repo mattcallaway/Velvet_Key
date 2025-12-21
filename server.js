@@ -1,17 +1,10 @@
-const express = require('express');
-const app = express();
+require('dotenv').config();
+const app = require('./src/app');
 
-app.use(express.json());
-
-app.get('/health', (req, res) => {
-  res.json({
-    status: 'ok',
-    message: 'Lifestyle rentals API is running on your Linode dev server.'
-  });
-});
-
-const PORT = 4000;
+const PORT = process.env.PORT || 4000;
 
 app.listen(PORT, () => {
-  console.log(`API listening on http://localhost:${PORT}`);
+  console.log(`🚀 Velvet Key API listening on http://localhost:${PORT}`);
+  console.log(`📊 Environment: ${process.env.NODE_ENV || 'development'}`);
+  console.log(`🔥 Firebase Project: ${process.env.FIREBASE_PROJECT_ID}`);
 });
