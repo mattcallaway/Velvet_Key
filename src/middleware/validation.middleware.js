@@ -152,11 +152,81 @@ const validatePagination = [
     handleValidationErrors,
 ];
 
+/**
+ * Validate rental creation
+ */
+const validateRentalCreate = [
+    body('title')
+        .trim()
+        .notEmpty()
+        .isLength({ min: 10, max: 100 })
+        .withMessage('Title must be 10-100 characters'),
+
+    body('description')
+        .trim()
+        .notEmpty()
+        .isLength({ min: 50, max: 2000 })
+        .withMessage('Description must be 50-2000 characters'),
+
+    body('propertyType')
+        .isIn(['HOUSE', 'APARTMENT', 'CONDO', 'VILLA', 'CABIN', 'OTHER'])
+        .withMessage('Invalid property type'),
+
+    body('addressLine1').trim().notEmpty().withMessage('Address is required'),
+    body('city').trim().notEmpty().withMessage('City is required'),
+    body('state').trim().notEmpty().withMessage('State is required'),
+    body('zipCode').trim().matches(/^\d{5}$/).withMessage('Invalid Zip Code'),
+    body('country').trim().notEmpty().withMessage('Country is required'),
+
+    body('maxGuests')
+        .isInt({ min: 1, max: 50 })
+        .withMessage('Max guests must be between 1 and 50'),
+
+    body('bedrooms')
+        .isInt({ min: 0, max: 20 })
+        .withMessage('Bedrooms must be between 0 and 20'),
+
+    body('bathrooms')
+        .isFloat({ min: 0, max: 20 })
+        .withMessage('Bathrooms must be between 0 and 20'),
+
+    body('pricePerNight')
+        .isFloat({ min: 1, max: 10000 })
+        .withMessage('Price must be between 1 and 10000'),
+
+    body('amenities')
+        .optional()
+        .isArray()
+        .withMessage('Amenities must be an array'),
+
+    handleValidationErrors,
+];
+
+/**
+ * Validate rental update
+ */
+const validateRentalUpdate = [
+    body('title')
+        .optional()
+        .trim()
+        .isLength({ min: 10, max: 100 }),
+
+    body('pricePerNight')
+        .optional()
+        .isFloat({ min: 1, max: 10000 }),
+
+    // Add other fields as needed...
+
+    handleValidationErrors,
+];
+
 module.exports = {
     validateRegistration,
     validateProfileUpdate,
     validateEmail,
     validateUserId,
     validatePagination,
+    validateRentalCreate,
+    validateRentalUpdate,
     handleValidationErrors,
 };
