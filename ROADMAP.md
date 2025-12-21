@@ -126,8 +126,9 @@ Existing rental marketplace platforms (Airbnb, VRBO) don't adequately serve the 
 - None currently
 
 **Technical Debt:**
-- Need to remove bcrypt/JWT dependencies (replaced by Firebase)
-- Need to update User model to include `firebaseUid` field
+- [x] Need to remove bcrypt/JWT dependencies (replaced by Firebase)
+- [x] Need to update User model to include `firebaseUid` field
+- [ ] **Decimal Precision**: Current pricing uses `Number()` (float). Migrate to `decimal.js` or `Prisma.Decimal` for financial accuracy.
 
 ---
 
