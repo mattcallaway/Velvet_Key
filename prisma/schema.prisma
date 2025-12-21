@@ -153,7 +153,7 @@ model Booking {
   // Relations
   rental            Rental        @relation(fields: [rentalId], references: [id])
   guest             User          @relation("GuestBookings", fields: [guestId], references: [id])
-  review            Review?
+  reviews           Review[]
   
   @@index([rentalId])
   @@index([guestId])
@@ -171,7 +171,7 @@ enum BookingStatus {
 
 model Review {
   id                String   @id @default(uuid())
-  bookingId         String   @unique
+  bookingId         String   
   rentalId          String
   authorId          String
   subjectId         String
@@ -193,6 +193,7 @@ model Review {
   author            User     @relation("ReviewAuthor", fields: [authorId], references: [id])
   subject           User     @relation("ReviewSubject", fields: [subjectId], references: [id])
   
+  @@unique([bookingId, authorId]) // Ensures one review per person per booking
   @@index([rentalId])
   @@index([authorId])
   @@index([subjectId])
