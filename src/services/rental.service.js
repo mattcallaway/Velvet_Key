@@ -20,7 +20,8 @@ async function createRental(hostId, data) {
         bedrooms: parseInt(data.bedrooms),
         bathrooms: parseFloat(data.bathrooms),
         pricePerNight: parseFloat(data.pricePerNight),
-        status: 'PENDING', // Default status
+        isApproved: false, // Default to pending approval
+        isActive: true,    // Default to active
         hostId,
     };
 
@@ -100,7 +101,7 @@ async function updateRental(rentalId, updates) {
         'pricePerNight', 'cleaningFee', 'serviceFee', 'maxGuests',
         'bedrooms', 'beds', 'bathrooms', 'amenities', 'houseRules',
         'cancellationPolicy', 'minNights', 'maxNights', 'images',
-        'mainImageIndex', 'status' // Only admin should theoretically update status manually here, ideally separate
+        'mainImageIndex', 'isApproved', 'isActive' // Only admin should theoretically update status manually here, ideally separate
     ];
 
     // Filter updates
@@ -179,7 +180,8 @@ async function searchRentals(filters) {
     } = filters;
 
     const where = {
-        status: 'APPROVED', // Only show approved rentals publically
+        isApproved: true, // Only show approved rentals publically
+        isActive: true,
     };
 
     if (city) where.city = { contains: city, mode: 'insensitive' };
@@ -261,7 +263,7 @@ async function getRentalsByHost(hostId) {
 async function approveRental(rentalId) {
     return await prisma.rental.update({
         where: { id: rentalId },
-        data: { status: 'APPROVED' },
+        data: { isApproved: true },
     });
 }
 
