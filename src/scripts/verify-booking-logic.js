@@ -12,15 +12,34 @@ async function main() {
         // 1. Setup: Ensure we have a Host, a Guest, and a Rental
         console.log('\n--- Setup ---');
 
-        // Find or create test users (using raw Prisma to bypass auth checks)
-        // We'll use existing users if possible or create dummies
-        const users = await prisma.user.findMany({ take: 2 });
+        // Find or create test users
+        let users = await prisma.user.findMany({ take: 2 });
         if (users.length < 2) {
-            console.log('⚠️ Not enough users found. Please create users via API first or run seed.');
-            return;
+            console.log(' Creating dummy users for testing...');
+            const hostUser = await prisma.user.create({
+                data: {
+                    firebaseUid: 'test-host-uid-' + Date.now(),
+                    email: 'host-' + Date.now() + '@test.com',
+                    role: 'HOST',
+                    firstName: 'Test',
+                    lastName: 'Host',
+                    dateOfBirth: new Date('1990-01-01'),
+                }
+            });
+            const guestUser = await prisma.user.create({
+                data: {
+                    firebaseUid: 'test-guest-uid-' + Date.now(),
+                    email: 'guest-' + Date.now() + '@test.com',
+                    role: 'GUEST',
+                    firstName: 'Test',
+                    lastName: 'Guest',
+                    dateOfBirth: new Date('1990-01-01'),
+                }
+            });
+            users = [hostUser, guestUser];
         }
-        hostId = users[0].id; // First user as Host
-        guestId = users[1].id; // Second user as Guest
+        hostId = users[0].id;
+        guestId = users[1].id;
 
         console.log(`Host: ${hostId}`);
         console.log(`Guest: ${guestId}`);
