@@ -39,25 +39,18 @@ async function verifyFirebaseToken(req, res, next) {
         // Verify the Firebase ID token
         const decodedToken = await auth.verifyIdToken(idToken);
 
-        // Hydrate database user
+        // Try to hydrate database user if they exist
         const user = await authService.getUserByFirebaseUid(decodedToken.uid);
-
-        if (!user) {
-            return res.status(401).json({
-                success: false,
-                error: 'User account not found',
-                message: 'Please complete your registration.',
-            });
-        }
 
         // Attach Firebase and Database user data to request
         req.firebaseUser = {
             uid: decodedToken.uid,
-            email: decodedToken.email,
-            emailVerified: decodedToken.email_verified,
+            email: decodedToken.email || null,
+            emailVerified: decodedToken.email_verified || false,
+            isAnonymous: !decodedToken.email && !decodedToken.phone_number,
         };
 
-        // Attach database user to req.user (used by most controllers)
+        // Attach database user to req.user (will be null for new/guest users)
         req.user = user;
 
         next();

@@ -104,7 +104,16 @@ async function getCurrentUser(req, res) {
         const user = await authService.getUserByFirebaseUid(req.firebaseUser.uid);
 
         if (!user) {
-            return error(res, 'User not found', 404);
+            return success(res, {
+                user: {
+                    id: null,
+                    uid: req.firebaseUser.uid,
+                    firstName: 'Guest',
+                    lastName: 'User',
+                    role: 'GUEST',
+                    isAnonymous: req.firebaseUser.isAnonymous || false
+                }
+            }, 'Authenticated as Guest');
         }
 
         return success(res, { user });
