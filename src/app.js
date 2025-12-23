@@ -26,14 +26,9 @@ app.use(express.urlencoded({ extended: true }));
 const apiRoutes = require('./routes');
 app.use('/api', apiRoutes);
 
-// Health check (legacy, keeping for backwards compatibility)
-app.get('/health', (req, res) => {
-    res.json({
-        status: 'ok',
-        message: 'Velvet Key API is running',
-        timestamp: new Date().toISOString(),
-    });
-});
+// Health check (Mounting the router directly as well for root access)
+const healthRoutes = require('./routes/health');
+app.use('/health', healthRoutes);
 
 // Error handling middleware (must be last)
 const { notFoundHandler, errorHandler } = require('./middleware/error.middleware');

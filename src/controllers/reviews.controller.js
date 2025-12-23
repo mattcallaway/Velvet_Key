@@ -8,7 +8,7 @@ const { sendSuccess } = require('../utils/response.util');
 exports.createReview = async (req, res, next) => {
     try {
         const { bookingId } = req.params;
-        const authorId = req.user.uid; // From auth middleware
+        const authorId = req.user.id; // From auth middleware
         const review = await reviewService.createReview(bookingId, authorId, req.body);
 
         sendSuccess(res, 201, 'Review submitted successfully', review);

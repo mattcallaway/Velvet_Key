@@ -7,6 +7,8 @@ const authRoutes = require('./auth.routes');
 const userRoutes = require('./users.routes');
 const rentalRoutes = require('./rentals.routes');
 const bookingsRoutes = require('./bookings.routes');
+const debugRoutes = require('./debug');
+const healthRoutes = require('./health');
 
 /**
  * API Routes Aggregator
@@ -28,6 +30,12 @@ router.use('/rentals', rentalRoutes);
 
 // Bookings
 router.use('/bookings', bookingsRoutes);
+
+// Debug (Temporary for testing)
+router.use('/debug', debugRoutes);
+
+// Health (Directly under /api)
+router.use('/health', healthRoutes);
 
 // Reviews (Routes handle their own paths)
 const reviewsRoutes = require('./reviews.routes');

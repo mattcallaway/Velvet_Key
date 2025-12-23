@@ -1,4 +1,5 @@
 const { auth, firebaseInitialized } = require('../config/firebase');
+const authService = require('../services/auth.service');
 
 /**
  * Firebase Authentication Middleware
@@ -38,12 +39,26 @@ async function verifyFirebaseToken(req, res, next) {
         // Verify the Firebase ID token
         const decodedToken = await auth.verifyIdToken(idToken);
 
-        // Attach Firebase user data to request
+        // Hydrate database user
+        const user = await authService.getUserByFirebaseUid(decodedToken.uid);
+
+        if (!user) {
+            return res.status(401).json({
+                success: false,
+                error: 'User account not found',
+                message: 'Please complete your registration.',
+            });
+        }
+
+        // Attach Firebase and Database user data to request
         req.firebaseUser = {
             uid: decodedToken.uid,
             email: decodedToken.email,
             emailVerified: decodedToken.email_verified,
         };
+
+        // Attach database user to req.user (used by most controllers)
+        req.user = user;
 
         next();
     } catch (error) {
@@ -94,6 +109,12 @@ async function optionalAuth(req, res, next) {
                 email: decodedToken.email,
                 emailVerified: decodedToken.email_verified,
             };
+
+            // Optionally attach database user if they exist
+            const user = await authService.getUserByFirebaseUid(decodedToken.uid);
+            if (user) {
+                req.user = user;
+            }
         }
 
         next();

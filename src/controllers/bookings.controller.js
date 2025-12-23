@@ -7,7 +7,7 @@ class BookingsController {
      */
     async createBooking(req, res, next) {
         try {
-            const guestId = req.user.uid; // From auth middleware
+            const guestId = req.user.id; // From auth middleware
             const booking = await bookingService.createBooking(guestId, req.body);
 
             res.status(201).json(successResponse('Booking request created successfully', booking));
@@ -22,7 +22,7 @@ class BookingsController {
     async getBooking(req, res, next) {
         try {
             const bookingId = req.params.id;
-            const userId = req.user.uid;
+            const userId = req.user.id;
 
             const booking = await bookingService.getBookingById(bookingId, userId);
 
@@ -37,7 +37,7 @@ class BookingsController {
      */
     async getMyBookings(req, res, next) {
         try {
-            const userId = req.user.uid;
+            const userId = req.user.id;
             const role = req.query.role === 'HOST' ? 'HOST' : 'GUEST';
 
             const bookings = await bookingService.getUserBookings(userId, role);
@@ -54,7 +54,7 @@ class BookingsController {
     async updateStatus(req, res, next) {
         try {
             const bookingId = req.params.id;
-            const userId = req.user.uid;
+            const userId = req.user.id;
             const { status } = req.body;
 
             const updatedBooking = await bookingService.updateBookingStatus(bookingId, userId, status);
