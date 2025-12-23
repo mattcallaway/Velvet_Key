@@ -21,6 +21,7 @@ let firebaseInitialized = false;
 let auth = null;
 let storage = null;
 let bucket = null;
+let db = null;
 
 try {
     let credential;
@@ -51,6 +52,12 @@ try {
     storage = admin.storage();
     bucket = storage.bucket();
 
+    // Initialize Firestore with specific database ID if provided
+    const { getFirestore } = require('firebase-admin/firestore');
+    db = process.env.FIREBASE_DATABASE_ID
+        ? getFirestore(admin.app(), process.env.FIREBASE_DATABASE_ID)
+        : getFirestore(admin.app());
+
     firebaseInitialized = true;
     console.log('✅ Firebase Admin SDK initialized successfully');
 } catch (error) {
@@ -67,5 +74,6 @@ module.exports = {
     auth: auth,
     storage: storage,
     bucket: bucket,
+    db: db,
     firebaseInitialized,
 };

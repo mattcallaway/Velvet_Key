@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const admin = require('firebase-admin');
+const { admin, db } = require('../config/firebase');
 
 // 1. Firebase Admin initialization status
 router.get('/firebase-status', (req, res) => {
@@ -19,7 +19,8 @@ router.get('/firebase-status', (req, res) => {
 // 2. Firestore Read/Write Test
 router.get('/firestore-test', async (req, res) => {
     try {
-        const db = admin.firestore();
+        if (!db) throw new Error("Firestore not initialized (check FIREBASE_DATABASE_ID)");
+
         const testRef = db.collection('_connectivity_test').doc('ping');
 
         // Write test

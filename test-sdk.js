@@ -24,16 +24,28 @@ try {
         console.log("✅ SDK Initialized.");
     }
 
-    admin.auth().listUsers(1)
-        .then(() => {
-            console.log("✅ Auth Success: Can communicate with Google Firebase servers.");
-            process.exit(0);
-        })
+    const authPromise = admin.auth().listUsers(1)
+        .then(() => console.log("✅ Auth Success: Can communicate with Google Firebase servers."))
         .catch(err => {
-            console.error("❌ Auth Failed: SDK is initialized but Google rejected credentials.");
-            console.error("Reason:", err.message);
-            process.exit(1);
+            console.error("❌ Auth Failed:", err.message);
+            throw err;
         });
+
+    const { getFirestore } = require('firebase-admin/firestore');
+    const db = process.env.FIREBASE_DATABASE_ID
+        ? getFirestore(admin.app(), process.env.FIREBASE_DATABASE_ID)
+        : getFirestore(admin.app());
+
+    const firestorePromise = db.collection('_connectivity_test').doc('ping').get()
+        .then(() => console.log("✅ Firestore Success: Can reach database " + (process.env.FIREBASE_DATABASE_ID || "(default)")))
+        .catch(err => {
+            console.error("❌ Firestore Failed:", err.message);
+            throw err;
+        });
+
+    Promise.all([authPromise, firestorePromise])
+        .then(() => process.exit(0))
+        .catch(() => process.exit(1));
 
 } catch (err) {
     console.error("❌ Initialization Failed: Could not even start the SDK.");
