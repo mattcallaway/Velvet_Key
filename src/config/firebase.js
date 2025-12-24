@@ -49,14 +49,30 @@ try {
 
     // Export Firebase Admin services
     auth = admin.auth();
-    storage = admin.storage();
-    bucket = storage.bucket();
+
+    // Initialize Storage gracefully
+    try {
+        storage = admin.storage();
+        if (process.env.FIREBASE_STORAGE_BUCKET) {
+            bucket = storage.bucket();
+        } else {
+            console.warn('⚠️  FIREBASE_STORAGE_BUCKET not provided. Storage features limited.');
+        }
+    } catch (storageErr) {
+        console.warn('⚠️  Firebase Storage failed to initialize:', storageErr.message);
+    }
 
     // Initialize Firestore with specific database ID if provided
     const { getFirestore } = require('firebase-admin/firestore');
-    db = process.env.FIREBASE_DATABASE_ID
-        ? getFirestore(admin.app(), process.env.FIREBASE_DATABASE_ID)
-        : getFirestore(admin.app());
+
+    try {
+        db = process.env.FIREBASE_DATABASE_ID
+            ? getFirestore(admin.app(), process.env.FIREBASE_DATABASE_ID)
+            : getFirestore(admin.app());
+    } catch (firestoreErr) {
+        console.error('⚠️  Firestore failed to initialize:', firestoreErr.message);
+        throw firestoreErr; // Re-throw to fail the main init if DB is down
+    }
 
     firebaseInitialized = true;
     console.log('✅ Firebase Admin SDK initialized successfully');
