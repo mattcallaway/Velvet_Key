@@ -1,11 +1,6 @@
 const prisma = require('../config/database');
 const { NotFoundError, BadRequestError } = require('../utils/customErrors');
-
-/**
- * Rental Service
- * 
- * Business logic for rental property management
- */
+const AmenityService = require('./amenities.service');
 
 /**
  * Create a new rental listing
@@ -14,6 +9,15 @@ const { NotFoundError, BadRequestError } = require('../utils/customErrors');
  * @returns {Promise<Object>} Created rental
  */
 async function createRental(hostId, data) {
+    // Validate amenities if present
+    if (data.amenities) {
+        const { isValid, errors, values } = await AmenityService.validateAmenities(data.amenities);
+        if (!isValid) {
+            throw new BadRequestError(`Invalid amenities: ${errors.join(' ')}`);
+        }
+        data.amenities = values;
+    }
+
     // Ensure maxGuests, bedrooms, bathrooms, pricePerNight are numbers
     const formattedData = {
         ...data,
@@ -39,6 +43,9 @@ async function createRental(hostId, data) {
             },
         },
     });
+
+    // Update Search Index in Firestore (Option B)
+    await AmenityService.updateSearchIndex(rental.id, rental);
 
     return rental;
 }
@@ -110,6 +117,15 @@ async function updateRental(rentalId, updates) {
         }
     }
 
+    // Validate amenities if present in updates
+    if (filteredUpdates.amenities) {
+        const { isValid, errors, values } = await AmenityService.validateAmenities(filteredUpdates.amenities);
+        if (!isValid) {
+            throw new BadRequestError(`Invalid amenities: ${errors.join(' ')}`);
+        }
+        filteredUpdates.amenities = values;
+    }
+
     // Handle number conversions if present
     if (filteredUpdates.maxGuests) filteredUpdates.maxGuests = parseInt(filteredUpdates.maxGuests);
     if (filteredUpdates.bedrooms) filteredUpdates.bedrooms = parseInt(filteredUpdates.bedrooms);
@@ -124,6 +140,10 @@ async function updateRental(rentalId, updates) {
                 updatedAt: new Date(),
             },
         });
+
+        // Update Search Index in Firestore (Option B)
+        await AmenityService.updateSearchIndex(rental.id, rental);
+
         return rental;
     } catch (error) {
         if (error.code === 'P2025') {
@@ -211,6 +231,18 @@ async function searchRentals(filters) {
         isActive: true,
     };
 
+    // If amenities are provided, use the Firestore Search Index (Option B)
+    if (amenities && Object.keys(amenities).length > 0) {
+        const indexedIds = await AmenityService.searchInIndex(filters);
+        if (indexedIds.length === 0) {
+            return {
+                rentals: [],
+                pagination: { page: parseInt(page), limit: parseInt(limit), total: 0, totalPages: 0 }
+            };
+        }
+        where.id = { in: indexedIds };
+    }
+
     if (city) where.city = { contains: city, mode: 'insensitive' };
     if (state) where.state = { contains: state, mode: 'insensitive' };
     if (zipCode) where.zipCode = zipCode;
@@ -220,12 +252,6 @@ async function searchRentals(filters) {
     if (bathrooms) where.bathrooms = { gte: parseFloat(bathrooms) };
     if (minPrice) where.pricePerNight = { ...where.pricePerNight, gte: parseFloat(minPrice) };
     if (maxPrice) where.pricePerNight = { ...where.pricePerNight, lte: parseFloat(maxPrice) };
-
-    if (amenities && Array.isArray(amenities)) {
-        where.amenities = {
-            hasEvery: amenities,
-        };
-    }
 
     // Generic text search
     if (search) {

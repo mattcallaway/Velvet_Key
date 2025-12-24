@@ -8,6 +8,7 @@ const userRoutes = require('./users.routes');
 const rentalRoutes = require('./rentals.routes');
 const bookingsRoutes = require('./bookings.routes');
 const activityRoutes = require('./activity.routes');
+const amenitiesRoutes = require('./amenities.routes');
 const debugRoutes = require('./debug');
 const healthTestRoutes = require('./health');
 
@@ -34,6 +35,9 @@ router.use('/bookings', bookingsRoutes);
 
 // Activity Feed (Phase 3)
 router.use('/host/activity', activityRoutes);
+
+// Amenities
+router.use('/amenities', amenitiesRoutes);
 
 // Debug (Temporary for testing)
 router.use('/debug', debugRoutes);

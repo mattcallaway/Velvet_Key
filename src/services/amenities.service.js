@@ -95,6 +95,94 @@ class AmenityService {
             values: validatedValues
         };
     }
+
+    /**
+     * Update the search index for a specific rental
+     * @param {string} rentalId 
+     * @param {Object} rentalData - Data from PostgreSQL (Prisma)
+     */
+    static async updateSearchIndex(rentalId, rentalData) {
+        if (!firebaseInitialized || !db) return;
+
+        const indexRef = db.collection('rental_search_index').doc(rentalId);
+
+        // Flatten amenities for indexing
+        // We convert boolean amenities to specific tags or searchable flags
+        const filters = {
+            city: rentalData.city,
+            state: rentalData.state,
+            price_per_night: rentalData.pricePerNight,
+            max_guests: rentalData.maxGuests,
+            bedrooms: rentalData.bedrooms,
+            bathrooms: rentalData.bathrooms,
+            property_type: rentalData.propertyType,
+            amenities: rentalData.amenities || {}
+        };
+
+        const indexData = {
+            rental_id: rentalId,
+            filters,
+            search_text: `${rentalData.title} ${rentalData.city} ${rentalData.state}`.toLowerCase(),
+            updated_at: new Date().toISOString()
+        };
+
+        await indexRef.set(indexData, { merge: true });
+        console.log(`[INDEX] Updated search index for rental: ${rentalId}`);
+    }
+
+    /**
+     * Search listings using the Firestore index
+     * @param {Object} filters 
+     * @returns {Promise<Array>} List of rental IDs
+     */
+    static async searchInIndex(filters) {
+        if (!firebaseInitialized || !db) return [];
+
+        const {
+            city,
+            state,
+            minPrice,
+            maxPrice,
+            maxGuests,
+            amenities = {}
+        } = filters;
+
+        let query = db.collection('rental_search_index');
+
+        // Coarse Filtering (Firestore)
+        if (city) query = query.where('filters.city', '==', city);
+        if (state) query = query.where('filters.state', '==', state);
+        if (maxGuests) query = query.where('filters.max_guests', '>=', parseInt(maxGuests));
+
+        const snapshot = await query.get();
+        let results = [];
+        snapshot.forEach(doc => results.push(doc.data()));
+
+        // Fine-Grained Filtering (Backend)
+        results = results.filter(item => {
+            const f = item.filters;
+
+            // Price range check
+            if (minPrice && f.price_per_night < parseFloat(minPrice)) return false;
+            if (maxPrice && f.price_per_night > parseFloat(maxPrice)) return false;
+
+            // Amenity check
+            for (const [key, requestedValue] of Object.entries(amenities)) {
+                const actualValue = f.amenities[key];
+
+                // If it's boolean, must be true if requested (assuming guests only filter for 'has')
+                if (typeof requestedValue === 'boolean' && requestedValue && !actualValue) return false;
+
+                // If it's numeric/enum, matching logic
+                if (typeof requestedValue === 'number' && actualValue < requestedValue) return false;
+                // Add more complex enum/multi-select logic here if needed
+            }
+
+            return true;
+        });
+
+        return results.map(r => r.rental_id);
+    }
 }
 
 module.exports = AmenityService;
