@@ -14,7 +14,17 @@ class AmenityService {
      */
     static async getCatalog() {
         if (!firebaseInitialized || !db) {
-            throw new Error('Firestore not initialized');
+            console.warn('[AmenityService] Firebase not initialized, providing fallback catalog');
+            return [
+                { key: 'wifi', name: 'High-speed Wifi', category: 'Essentials', type: 'boolean' },
+                { key: 'parking', name: 'Free Parking', category: 'Essentials', type: 'boolean' },
+                { key: 'kitchen', name: 'Full Kitchen', category: 'Essentials', type: 'boolean' },
+                { key: 'workspace', name: 'Dedicated Workspace', category: 'Essentials', type: 'boolean' },
+                { key: 'pool', name: 'Swimming Pool', category: 'Features', type: 'boolean' },
+                { key: 'gym', name: 'Fitness Center', category: 'Features', type: 'boolean' },
+                { key: 'smoking', name: 'Smoking Allowed', category: 'Safety', type: 'boolean' },
+                { key: 'camera', name: 'Security Cameras', category: 'Safety', type: 'boolean' }
+            ];
         }
 
         const snapshot = await db.collection(this.COLLECTION_NAME).get();

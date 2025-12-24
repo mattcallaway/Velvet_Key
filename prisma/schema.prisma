@@ -23,6 +23,11 @@ model User {
   phoneNumber       String?
   bio               String?
   profileImageUrl   String?
+  screenName        String?
+  genderIdentity    String?
+  relationshipStatus String?
+  location          String?
+  inviteCode        String?
   
   // Verification & Trust
   emailVerified     Boolean   @default(false)

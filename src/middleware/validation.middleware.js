@@ -106,6 +106,36 @@ const validateProfileUpdate = [
         .isURL()
         .withMessage('Profile image must be a valid URL'),
 
+    body('screenName')
+        .optional()
+        .trim()
+        .isLength({ max: 50 })
+        .withMessage('Screen name must not exceed 50 characters'),
+
+    body('genderIdentity')
+        .optional()
+        .trim()
+        .isLength({ max: 50 })
+        .withMessage('Gender identity must not exceed 50 characters'),
+
+    body('relationshipStatus')
+        .optional()
+        .trim()
+        .isLength({ max: 50 })
+        .withMessage('Relationship status must not exceed 50 characters'),
+
+    body('location')
+        .optional()
+        .trim()
+        .isLength({ max: 100 })
+        .withMessage('Location must not exceed 100 characters'),
+
+    body('inviteCode')
+        .optional()
+        .trim()
+        .isLength({ max: 20 })
+        .withMessage('Invite code must not exceed 20 characters'),
+
     handleValidationErrors,
 ];
 

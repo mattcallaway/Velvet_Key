@@ -3,8 +3,8 @@ const app = require('./src/app');
 
 const PORT = process.env.PORT || 4000;
 
-const server = app.listen(PORT, () => {
-  console.log(`🚀 Velvet Key API listening on http://localhost:${PORT}`);
+const server = app.listen(PORT, '0.0.0.0', () => {
+  console.log(`🚀 Velvet Key API listening on http://0.0.0.0:${PORT}`);
   console.log(`📊 Environment: ${process.env.NODE_ENV || 'development'}`);
   console.log(`🔥 Firebase Project: ${process.env.FIREBASE_PROJECT_ID}`);
 });

@@ -3,11 +3,16 @@ const router = express.Router();
 const { db, firebaseInitialized } = require('../config/firebase');
 const { success, error } = require('../utils/response.util');
 
+const { verifyFirebaseToken } = require('../middleware/auth.middleware');
+
 /**
  * Activity Feed Routes (Phase 3)
  * 
  * Provides endpoints for Hosts to view their activity history.
  */
+
+// Protect all routes
+router.use(verifyFirebaseToken);
 
 /**
  * GET /api/host/activity
@@ -16,10 +21,16 @@ const { success, error } = require('../utils/response.util');
 router.get('/', async (req, res, next) => {
     try {
         if (!firebaseInitialized || !db) {
-            throw new Error('Firestore not initialized');
+            console.warn('[Activity] Firestore not initialized, returning empty feed');
+            return success(res, { events: [], count: 0 }, 'Activity feed (fallback)');
         }
 
-        const hostId = req.user.id || req.user.firebaseUid;
+        const user = req.user || req.firebaseUser;
+        if (!user) {
+            return error(res, 'User identity not found', 401);
+        }
+
+        const hostId = user.id || user.uid;
         const { limit = 20, entityType } = req.query;
 
         let query = db.collection('audit_events')

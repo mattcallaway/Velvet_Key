@@ -42,6 +42,11 @@ async function registerUser(firebaseUid, userData) {
         role: userData.role || 'GUEST',
         phoneNumber: userData.phoneNumber || null,
         emailVerified: userData.emailVerified || false,
+        screenName: userData.screenName || null,
+        genderIdentity: userData.genderIdentity || null,
+        relationshipStatus: userData.relationshipStatus || null,
+        location: userData.location || null,
+        inviteCode: userData.inviteCode || null,
       },
     });
 
@@ -129,11 +134,11 @@ function calculateAge(dateOfBirth) {
   const birthDate = new Date(dateOfBirth);
   let age = today.getFullYear() - birthDate.getFullYear();
   const monthDiff = today.getMonth() - birthDate.getMonth();
-  
+
   if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
     age--;
   }
-  
+
   return age;
 }
 

@@ -100,9 +100,14 @@ Existing rental marketplace platforms (Airbnb, VRBO) don't adequately serve the 
 ## 🚀 Where We're Going
 
 ### Short-Term (Next 2 Weeks)
-**Phase 9: Mobile UI Integration**
-- Wire up the React Native client to use the standardized `CONTRACT.md`.
-- Implement E2E validation for Host/Guest flows.
+### [ACTIVE] Phase 9: Mobile UI Integration
+- **Goal**: Implement "Modern Marketplace — After Dark" aesthetic.
+- **Status**: **UI Overhaul Complete** (Login, Register, Browse, Search, Details).
+- **Key Changes**:
+  - Dark-first theme (`#121212`).
+  - 2-Step Registration Wizard.
+  - Immersive Browse & Detail screens with sticky footers.
+  - "Discovery" search bar and gold/red filter logic.
 
 **Phase 7: Reviews & Ratings**
 - Bidirectional review system.
@@ -112,6 +117,17 @@ Existing rental marketplace platforms (Airbnb, VRBO) don't adequately serve the 
 - **Phase 10: Payment Integration (Stripe)**: Handling transactions and security deposits.
 - **Phase 11: Real-time Communication**: Host-guest messaging and notifications.
 - **Phase 12: Admin Control Plane**: Dashboard for content moderation.
+
+### Backlog / Future Tasks
+- [ ] **Extended Profile Schema (Post-UI Overhaul)**
+  - [ ] Update Prisma Schema `User` model:
+    - `screenName` (String, unique?)
+    - `genderIdentity` (String)
+    - `relationshipStatus` (String)
+    - `location` (String)
+    - `inviteCode` (String, optional)
+  - [ ] Update `auth.controller.js` to accept these fields during registration.
+  - [ ] Add validation logic for these fields.
 
 ---
 

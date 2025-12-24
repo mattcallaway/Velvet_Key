@@ -16,7 +16,7 @@ app.use(requestId);
 
 // CORS configuration
 const corsOptions = {
-    origin: process.env.CORS_ORIGINS?.split(',') || ['http://localhost:3000'],
+    origin: process.env.CORS_ORIGINS ? process.env.CORS_ORIGINS.split(',') : true, // 'true' reflects the request origin
     credentials: true,
 };
 

@@ -2,6 +2,9 @@
 
 A production-grade REST API for an adult-only, privacy-focused rental marketplace platform. Built with Node.js, Express, PostgreSQL, and Firebase.
 
+### 📜 [API Contract (CONTRACT.md)](file:///c:/Users/mattc/Velvet_Key/CONTRACT.md)
+*Refer to the contract for latest endpoints, auth methods, and search schemas.*
+
 ---
 
 ## 🎯 Project Overview
@@ -66,6 +69,8 @@ To ensure production health on Linode:
 ---
 
 ## 📡 API Endpoints
+
+All endpoints follow the **[Shared API Contract](CONTRACT.md)**.
 
 ### Health & Debug
 - `GET /health` - API health status
