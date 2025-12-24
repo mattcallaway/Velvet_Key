@@ -115,5 +115,5 @@ To ensure production health on Linode:
 ---
 
 **Last Updated**: December 24, 2025
-**Version**: 0.2.0 (Beta-Ready)
+**Version**: 0.3.0 (Beta-Ready)
 **Status**: Active Development
