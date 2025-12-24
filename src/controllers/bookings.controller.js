@@ -1,4 +1,5 @@
 const bookingService = require('../services/booking.service');
+const AuditService = require('../services/audit.service');
 const { successResponse } = require('../utils/response.util');
 
 class BookingsController {
@@ -9,6 +10,14 @@ class BookingsController {
         try {
             const guestId = req.user.id; // From auth middleware
             const booking = await bookingService.createBooking(guestId, req.body);
+
+            // Audit Log
+            await AuditService.log({
+                req,
+                action: 'BOOKING_REQUEST',
+                target: { type: 'BOOKING', id: booking.id },
+                metadata: { rentalId: booking.rentalId, totalPrice: booking.totalPrice }
+            });
 
             res.status(201).json(successResponse('Booking request created successfully', booking));
         } catch (error) {
@@ -58,6 +67,13 @@ class BookingsController {
             const { status } = req.body;
 
             const updatedBooking = await bookingService.updateBookingStatus(bookingId, userId, status);
+
+            // Audit Log
+            await AuditService.log({
+                req,
+                action: `BOOKING_${status}`,
+                target: { type: 'BOOKING', id: bookingId }
+            });
 
             res.json(successResponse('Booking status updated', updatedBooking));
         } catch (error) {

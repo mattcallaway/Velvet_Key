@@ -1,4 +1,5 @@
 const rentalService = require('../services/rental.service');
+const AuditService = require('../services/audit.service');
 const { success, error: errorResponse } = require('../utils/response.util');
 
 /**
@@ -17,6 +18,14 @@ async function createRental(req, res) {
         const rentalData = req.body;
 
         const rental = await rentalService.createRental(hostId, rentalData);
+
+        // Audit Log
+        await AuditService.log({
+            req,
+            action: 'RENTAL_CREATE',
+            target: { type: 'RENTAL', id: rental.id },
+            metadata: { title: rental.title }
+        });
 
         return success(res, { rental }, 'Rental created successfully. Pending approval.', 201);
     } catch (err) {
@@ -48,7 +57,20 @@ async function updateRental(req, res) {
         const { id } = req.params;
         const updates = req.body;
 
+        // Fetch current for diffing in audit log
+        const before = await rentalService.getRentalById(id);
         const rental = await rentalService.updateRental(id, updates);
+
+        // Audit Log
+        await AuditService.log({
+            req,
+            action: 'RENTAL_UPDATE',
+            target: { type: 'RENTAL', id },
+            metadata: {
+                before: { price: before.pricePerNight, status: before.status },
+                after: { price: rental.pricePerNight, status: rental.status }
+            }
+        });
 
         return success(res, { rental }, 'Rental updated successfully');
     } catch (err) {
@@ -65,6 +87,13 @@ async function deleteRental(req, res) {
         const { id } = req.params;
 
         await rentalService.deleteRental(id);
+
+        // Audit Log
+        await AuditService.log({
+            req,
+            action: 'RENTAL_DELETE',
+            target: { type: 'RENTAL', id }
+        });
 
         return success(res, null, 'Rental deleted successfully');
     } catch (err) {

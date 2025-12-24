@@ -3,12 +3,16 @@ const express = require('express');
 const cors = require('cors');
 
 const app = express();
+const requestId = require('./middleware/requestId');
 
 /**
  * Express App Configuration
  * 
  * Configures middleware and routes for the Velvet Key API.
  */
+
+// Request ID for log correlation
+app.use(requestId);
 
 // CORS configuration
 const corsOptions = {
