@@ -1,3 +1,4 @@
+require('dotenv').config();
 const AmenityService = require('../src/services/amenities.service');
 const { firebaseInitialized } = require('../src/config/firebase');
 
