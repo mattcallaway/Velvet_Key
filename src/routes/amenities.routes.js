@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const AmenityService = require('../services/amenities.service');
 const prisma = require('../config/database');
-const { successResponse, errorResponse } = require('../utils/response.util');
+const { success, error } = require('../utils/response.util');
 
 /**
  * Amenity Routes
@@ -17,10 +17,10 @@ const { successResponse, errorResponse } = require('../utils/response.util');
 router.get('/catalog', async (req, res) => {
     try {
         const catalog = await AmenityService.getCatalog();
-        res.json(successResponse('Amenity catalog retrieved', { catalog }));
-    } catch (error) {
-        console.error('Catalog Error:', error);
-        res.status(500).json(errorResponse('Failed to retrieve catalog', 500));
+        return success(res, { catalog }, 'Amenity catalog retrieved');
+    } catch (err) {
+        console.error('Catalog Error:', err);
+        return error(res, 'Failed to retrieve catalog', 500);
     }
 });
 
@@ -47,13 +47,13 @@ router.post('/reindex', async (req, res) => {
             }
         }
 
-        res.json(successResponse('Re-indexing complete', {
+        res.json(success(res, {
             total: rentals.length,
             indexed: successCount
-        }));
-    } catch (error) {
-        console.error('Re-index Error:', error);
-        res.status(500).json(errorResponse('Re-indexing failed', 500));
+        }, 'Re-indexing complete'));
+    } catch (err) {
+        console.error('Re-index Error:', err);
+        return error(res, 'Re-indexing failed', 500);
     }
 });
 

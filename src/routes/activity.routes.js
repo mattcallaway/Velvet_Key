@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const { db, firebaseInitialized } = require('../config/firebase');
-const { successResponse, errorResponse } = require('../utils/response.util');
+const { success, error } = require('../utils/response.util');
 
 /**
  * Activity Feed Routes (Phase 3)
@@ -43,13 +43,13 @@ router.get('/', async (req, res, next) => {
             events.push(data);
         });
 
-        res.json(successResponse('Activity feed retrieved successfully', {
+        return success(res, {
             events,
             count: events.length
-        }));
-    } catch (error) {
-        console.error('Activity Feed Error:', error);
-        res.status(500).json(errorResponse('Failed to retrieve activity feed', 500));
+        }, 'Activity feed retrieved successfully');
+    } catch (err) {
+        console.error('Activity Feed Error:', err);
+        return error(res, 'Failed to retrieve activity feed', 500);
     }
 });
 
