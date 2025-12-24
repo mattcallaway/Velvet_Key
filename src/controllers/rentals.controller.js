@@ -22,8 +22,9 @@ async function createRental(req, res) {
         // Audit Log
         await AuditService.log({
             req,
-            action: 'RENTAL_CREATE',
-            target: { type: 'RENTAL', id: rental.id },
+            action: 'listing.create',
+            entityType: 'listing',
+            entityId: rental.id,
             metadata: { title: rental.title }
         });
 
@@ -64,8 +65,9 @@ async function updateRental(req, res) {
         // Audit Log
         await AuditService.log({
             req,
-            action: 'RENTAL_UPDATE',
-            target: { type: 'RENTAL', id },
+            action: 'listing.update',
+            entityType: 'listing',
+            entityId: id,
             metadata: {
                 before: { price: before.pricePerNight, status: before.status },
                 after: { price: rental.pricePerNight, status: rental.status }
@@ -91,8 +93,9 @@ async function deleteRental(req, res) {
         // Audit Log
         await AuditService.log({
             req,
-            action: 'RENTAL_DELETE',
-            target: { type: 'RENTAL', id }
+            action: 'listing.delete',
+            entityType: 'listing',
+            entityId: id
         });
 
         return success(res, null, 'Rental deleted successfully');

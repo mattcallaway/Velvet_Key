@@ -14,8 +14,9 @@ class BookingsController {
             // Audit Log
             await AuditService.log({
                 req,
-                action: 'BOOKING_REQUEST',
-                target: { type: 'BOOKING', id: booking.id },
+                action: 'booking.request',
+                entityType: 'booking',
+                entityId: booking.id,
                 metadata: { rentalId: booking.rentalId, totalPrice: booking.totalPrice }
             });
 
@@ -71,8 +72,9 @@ class BookingsController {
             // Audit Log
             await AuditService.log({
                 req,
-                action: `BOOKING_${status}`,
-                target: { type: 'BOOKING', id: bookingId }
+                action: `booking.${status.toLowerCase()}`,
+                entityType: 'booking',
+                entityId: bookingId
             });
 
             res.json(successResponse('Booking status updated', updatedBooking));

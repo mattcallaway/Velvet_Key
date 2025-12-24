@@ -1,49 +1,62 @@
 const { db, admin, firebaseInitialized } = require('../config/firebase');
 
 /**
- * Audit Service
+ * Audit Service (v2 - Refined)
  * 
- * Handles emitting structural audit logs to Firestore and stdout.
+ * Handles emitting structural audit logs to Firestore and stdout
+ * following the "Phase 0" contract.
  */
 class AuditService {
     /**
      * Log an audit event
      * @param {Object} params Logging parameters
      */
-    static async log({ req, action, target, metadata = {}, status = 'SUCCESS' }) {
+    static async log({
+        req,
+        action,
+        entityType,
+        entityId,
+        metadata = {},
+        severity = 'info',
+        source = 'api',
+        status = 'SUCCESS'
+    }) {
+        const eventId = admin.firestore ? db.collection('_').doc().id : Date.now().toString();
+
         const auditEvent = {
-            audit_id: admin.firestore ? db.collection('_').doc().id : Date.now().toString(),
+            event_id: eventId,
             timestamp: admin.firestore ? admin.firestore.FieldValue.serverTimestamp() : new Date().toISOString(),
+            actor_type: req.user?.role || 'SYSTEM',
+            actor_id: req.user?.firebaseUid || 'system',
+            host_id: req.user?.id || req.user?.firebaseUid || 'system', // Primary grouping ID
+            action, // e.g., 'listing.create'
+            entity_type: entityType,
+            entity_id: entityId,
+            severity,
+            source,
             request_id: req.id || 'unknown',
-            actor: {
-                uid: req.user?.firebaseUid || 'system',
-                email: req.user?.email || null,
-                role: req.user?.role || 'GUEST'
-            },
-            action,
-            target,
+            ip: req.ip,
+            user_agent: req.get('user-agent'),
             metadata: {
                 ...metadata,
-                ip_address: req.ip,
-                user_agent: req.get('user-agent')
-            },
-            status
+                status // Keep status in metadata or as top level if needed
+            }
         };
 
         // 1. Log to stdout (for Linode/PM2 logs)
-        console.log(`[AUDIT] ${action} | Actor: ${auditEvent.actor.uid} | Target: ${target.type}:${target.id} | Status: ${status}`);
+        console.log(`[AUDIT] ${action} | ${severity} | Actor: ${auditEvent.actor_id} | Entity: ${entityType}:${entityId}`);
 
-        // 2. Log to Firestore (if available)
+        // 2. Log to Firestore
         if (firebaseInitialized && db) {
             try {
                 // Remove any undefined/null values for Firestore compatibility
                 const sanitizedEvent = JSON.parse(JSON.stringify(auditEvent));
-                // Restore serverTimestamp if it was stringified
+                // Restore serverTimestamp which gets mangled by JSON.stringify
                 sanitizedEvent.timestamp = admin.firestore.FieldValue.serverTimestamp();
 
-                await db.collection('audit_logs').doc(auditEvent.audit_id).set(sanitizedEvent);
+                await db.collection('audit_events').doc(eventId).set(sanitizedEvent);
             } catch (error) {
-                console.error('Failed to write audit log to Firestore:', error.message);
+                console.error('Failed to write audit event to Firestore:', error.message);
             }
         }
 
