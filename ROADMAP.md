@@ -40,60 +40,38 @@ Existing rental marketplace platforms (Airbnb, VRBO) don't adequately serve the 
 - Clear legal framework and age verification
 - Trust & safety through bidirectional reviews
 
-### Core Principles
-
-1. **Privacy**: User data is sacred
-2. **Non-Exploitative**: Find revenue streams that don't burden users
-3. **Trust & Safety**: Verification and reviews build community
-4. **Transparency**: Clear terms, no hidden fees
-5. **Quality**: Production-grade code, not MVP shortcuts
-
 ---
 
 ## 🕰️ Where We Came From
 
-### Initial State (December 21, 2025 - Morning)
-
+### Initial State (December 21, 2025)
 **Infrastructure Already in Place:**
 - ✅ Linode Ubuntu server (172.233.140.74)
 - ✅ UFW firewall configured (ports 22, 80, 443)
-- ✅ Nginx reverse proxy (port 80 → 4000)
-- ✅ PM2 process manager installed
-- ✅ Node.js installed on server
-- ✅ Basic Express server with `/health` endpoint
-- ✅ GitHub repository: https://github.com/mattcallaway/Velvet_Key
-- ✅ Git workflow established (local → GitHub → Linode)
+- ✅ Node.js, PostgreSQL, PM2, Nginx environment established.
+- ✅ Basic Express server skeleton.
 
-**What We Built (December 21, 2025 - Day 1):**
+### Core Implementation (COMPLETED ✅)
 
-### Phase 1: Planning & Architecture (COMPLETED ✅)
-- Created comprehensive architecture document
-- Designed complete database schema (Users, Rentals, Bookings, Reviews)
-- Documented all API endpoints
-- Planned authentication strategy (initially JWT, switched to Firebase)
-- Defined technology stack
+**Phase 1-2: Setup & DB**
+- Comprehensive schema design for PostgreSQL.
+- Prisma ORM integrated with 100% type-safe models.
+- Seed data generated for local and staging environments.
 
-### Phase 2: Database Layer (COMPLETED ✅)
-- Installed PostgreSQL 14 on Linode server
-- Created database: `velvet_key_db`
-- Created database user: `velvet_key_user`
-- Set up Prisma ORM with complete schema
-- Created comprehensive seed data (test users, rentals, bookings)
-- Installed all dependencies (bcrypt, JWT, express-validator, multer, etc.)
-- Pushed all code to GitHub
-- Deployed to Linode server
-- **Status**: Database tables created, ready for data
+**Phase 3-4: Firebase & User Sync**
+- Firebase Admin SDK integrated for secure authentication.
+- Middleware hydrators for mapping Firebase UIDs to PostgreSQL IDs.
+- Full User Profile CRUD (Get, Meta-Updates, Reviews, Deletion).
 
----
+**Phase 5-6: Rentals & Bookings**
+- Host listing management with multi-image Firebase Storage uploads.
+- Rental search engine with core filters (City, Guests, Price).
+- Booking status machine (Requested → Confirmed → Completed/Cancelled).
 
-## 🕰️ Where We Came From
-
-**Completed Recently:**
-- ✅ **Phase 3-4 (Auth/Users)**: Full Firebase integration and User CRUD.
-- ✅ **Phase 5-6 (Rentals/Bookings)**: Complete listing management and booking workflows.
-- ✅ **Phase 8 (Logging)**: Standardized hybrid logging and host activity feed.
-- ✅ **Phase 8.5 (Search)**: Hybrid search indexing (Option B) with amenity filters.
-- ✅ **API Contract**: Established `CONTRACT.md` as the shared source of truth.
+**Phase 8-8.5: Observability & Search (COMPLETED ✅)**
+- **Host Audit Logging**: Real-time event logging (Firestore) for transparency.
+- **Hybrid Search Engine**: Flexible amenity filtering (Option B) implemented via search indexing.
+- **Shared API Contract**: Established `CONTRACT.md` as the source of truth.
 
 ---
 
@@ -102,88 +80,76 @@ Existing rental marketplace platforms (Airbnb, VRBO) don't adequately serve the 
 ### Current Status (December 24, 2025)
 
 **Completed:**
-- ✅ Full database schema designed and implemented
-- ✅ PostgreSQL running on Linode with all tables created
-- ✅ Firebase Authentication & Storage integrated
-- ✅ **Phase 3-6**: Register, Login, User CRUD, Rentals, Bookings
-- ✅ **Phase 8-8.5**: Audit Logging, Hybrid Search Indexing
-- ✅ **Shared Contract**: CONTRACT.md established across app/server
+- ✅ Full database schema implemented.
+- ✅ All core MVP endpoints (Auth, Users, Rentals, Bookings) are production-ready.
+- ✅ **Option B Search** active on Linode.
+- ✅ **Host Activity Logs** functional on Linode.
+- ✅ **Shared Contract** reconciled between App/Server.
 
 **In Progress:**
-- 🔄 Phase 9: Mobile UI Integration (React Native)
-- 🔄 Refinement: Global error handling and validation consistency
+- 🔄 Phase 9: Mobile UI Integration (React Native).
+- 🔄 Continuous verification of CORS and Firewall settings.
 
 **Next Immediate Steps:**
-1. Open port 4000 on Linode Firewall (`ufw allow 4000/tcp`)
-2. Begin Mobile App E2E testing against Dev Base URL
-3. Implement Reviews & Trust system (Phase 7)
-
-**Blockers:**
-- None currently
-
-**Technical Debt:**
-- [x] Need to remove bcrypt/JWT dependencies (replaced by Firebase)
-- [x] Need to update User model to include `firebaseUid` field
-- [ ] **Decimal Precision**: Current pricing uses `Number()` (float). Migrate to `decimal.js` or `Prisma.Decimal` for financial accuracy.
+1. Open port 4000 on Linode (`ufw allow 4000/tcp`).
+2. Implement Phase 7: **Reviews & Trust** (Aggregated ratings).
+3. Connect Mobile Client to production `CONTRACT.md` endpoints.
 
 ---
 
 ## 🚀 Where We're Going
 
-### Short-Term Goals (Next 2 Weeks)
+### Short-Term (Next 2 Weeks)
+**Phase 9: Mobile UI Integration**
+- Wire up the React Native client to use the standardized `CONTRACT.md`.
+- Implement E2E validation for Host/Guest flows.
 
-**Phase 9: Mobile UI Integration** (Starting Now)
-- Connect React Native app to standard API endpoints
-- Implement E2E flow for registration and login
-- Real-time sync verification
+**Phase 7: Reviews & Ratings**
+- Bidirectional review system.
+- Global rating aggregation on `User` and `Rental` models.
 
-**Phase 7: Reviews & Trust** (Next)
-- Bidirectional review system (guest ↔ host)
-- Rating aggregation
-- Review moderation
-- Verification status display
+### Medium-Term (Next 1-2 Months)
+- **Phase 10: Payment Integration (Stripe)**: Handling transactions and security deposits.
+- **Phase 11: Real-time Communication**: Host-guest messaging and notifications.
+- **Phase 12: Admin Control Plane**: Dashboard for content moderation.
 
 ---
 
 ## 📋 Detailed Phase Breakdown
 
-### Phase 8: Refinement & Observability (COMPLETED ✅)
-- Host Audit Logging system
-- Request ID middleware
-- Connectivity validation suite
-- Anonymous account upgrades
+### [COMPLETED] Phase 3-6: Core MVP Implementation
+- Registration sync with Firebase.
+- Listing creation and public search.
+- Booking request and status management.
 
-### Phase 8.5: Amenities & Search (COMPLETED ✅)
-- Global Amenity Catalog
-- Firestore Hybrid Search Index
-- Option B Search Engine implementation
+### [COMPLETED] Phase 8: Observability & Refinement
+- Standardized `response.util.js` for API consistency.
+- Standardized `activity.service.js` for Firestore audit trails.
+- Automatic Search Indexing on rental updates.
+
+### [ACTIVE] Phase 7: Reviews & Trust
+- **Goal**: Build community trust.
+- **Tasks**: Rating calculations, review submission logic.
 
 ---
 
 ## 🤔 Technical Decisions & Rationale
 
-### Why Hybrid Search (Option B)?
-**Decision**: Use Firestore for coarse filtering and Node.js for fine-grained amenity logic.
-**Rationale**: Balances Firestore's query limitations with the need for flexible, multi-type amenity filtering without requiring a heavy Elasticsearch setup for the MVP.
+### Hybrid Search (Option B)
+We chose Option B (Index-assisted Node.js filtering) because it provides the flexibility of schema-less amenity types (Boolean, Enum, Numeric) without the complexity of a full Lucene-based search cluster (Elasticsearch) during the early stages.
+
+### Firebase-Native Auth
+By delegating Auth to Firebase, we offload security risks (Pass reset, MFA) while maintaining a high-performance local relational DB (PostgreSQL) for business logic.
 
 ---
 
 ## ✅ Success Criteria
 
-### MVP Core Success (COMPLETED ✅)
-- [x] Complete user registration and authentication (Firebase)
-- [x] Hosts can list properties with images
-- [x] Guests can search (Hybrid) and book rentals
-- [x] Host approval workflow functional
-- [x] API documented in CONTRACT.md
-
----
-
-## ⚠️ Risk & Mitigation
-
-### Technical Risks
-- **Risk**: Firestore/Postgres sync lag. 
-- **Mitigation**: Triggered re-indexing on rental updates.
+- [x] Users can Register/Login securely.
+- [x] Listings are searchable by location and dynamic amenities.
+- [x] Bookings follow a strict status-transition state machine.
+- [x] All activity is logged and visible to hosts.
+- [x] API documentation (CONTRACT.md) matches implementation 1:1.
 
 ---
 
@@ -191,17 +157,9 @@ Existing rental marketplace platforms (Airbnb, VRBO) don't adequately serve the 
 
 ### Required Reading
 1. [CONTRACT.md](./CONTRACT.md) - **Master API Contract**
-2. [README.md](./README.md) - Setup and architecture
-3. [implementation_plan.md](./docs/implementation_plan.md) - Technical details
+2. [README.md](./README.md) - Project Setup
+3. [ROADMAP.md](./ROADMAP.md) - Current Progress
 
 ---
 
-## 📞 Contact & Support
-
-**Project Lead**: Antigravity (AI Architect)  
-**Repository**: https://github.com/mattcallaway/Velvet_Key  
-**Server**: 172.233.140.74  
-
----
-
-**This roadmap is a living document. Last sync: 2025-12-24 02:05 UTC.**
+**This roadmap is a living document. Last sync: 2025-12-24 02:07 UTC.**
