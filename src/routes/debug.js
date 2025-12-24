@@ -1,65 +1,82 @@
 const express = require('express');
 const router = express.Router();
-const { admin, db } = require('../config/firebase');
+const { auth, db, firebaseInitialized } = require('../config/firebase');
 
-// 1. Firebase Admin initialization status
-router.get('/firebase-status', (req, res) => {
-    try {
-        const isInitialized = admin.apps.length > 0;
-        res.json({
-            status: isInitialized ? 'ready' : 'not_initialized',
-            project_id: process.env.FIREBASE_PROJECT_ID,
-            apps_count: admin.apps.length
-        });
-    } catch (error) {
-        res.status(500).json({ status: 'error', message: error.message });
-    }
+/**
+ * Debug configuration status
+ * GET /api/debug/config
+ */
+router.get('/config', (req, res) => {
+    res.json({
+        success: true,
+        nodeVersion: process.version,
+        env: process.env.NODE_ENV || 'development',
+        port: process.env.PORT || 4000,
+        firebaseInitialized: firebaseInitialized,
+        corsOrigins: process.env.CORS_ORIGINS || 'default',
+        timestamp: new Date().toISOString()
+    });
 });
 
-// 2. Firestore Read/Write Test
-router.get('/firestore-test', async (req, res) => {
-    try {
-        if (!db) throw new Error("Firestore not initialized (check FIREBASE_DATABASE_ID)");
-
-        const testRef = db.collection('_connectivity_test').doc('ping');
-
-        // Write test
-        await testRef.set({
-            lastPing: admin.firestore.FieldValue.serverTimestamp(),
-            message: "Connectivity test from Linode"
+/**
+ * End-to-end Firebase and Firestore test
+ * GET /api/debug/firebase
+ */
+router.get('/firebase', async (req, res) => {
+    if (!firebaseInitialized) {
+        return res.status(503).json({
+            success: false,
+            error: "Firebase Admin SDK failed to initialize. Check your credentials and .env file."
         });
+    }
 
-        // Read test
-        const doc = await testRef.get();
+    try {
+        const results = {};
 
-        res.json({
-            success: true,
-            operation: 'read_after_write',
-            data: doc.data()
+        // 1. Test Auth: Try to list 1 user
+        try {
+            const userList = await auth.listUsers(1);
+            results.auth = { status: 'success', users_found: userList.users.length };
+        } catch (authErr) {
+            results.auth = { status: 'fail', error: authErr.message };
+        }
+
+        // 2. Test Firestore: Write a ping doc
+        try {
+            const testRef = db.collection('_connectivity_test').doc('ping');
+            await testRef.set({
+                lastPing: new Date().toISOString(),
+                source: 'Linode Debug Route',
+                platform: 'Node.js'
+            });
+            results.firestore_write = 'success';
+        } catch (fsErr) {
+            results.firestore_write = { status: 'fail', error: fsErr.message };
+        }
+
+        // 3. Test Firestore: Read it back
+        try {
+            const testRef = db.collection('_connectivity_test').doc('ping');
+            const doc = await testRef.get();
+            results.firestore_read = { status: 'success', data: doc.data() };
+        } catch (fsErr) {
+            results.firestore_read = { status: 'fail', error: fsErr.message };
+        }
+
+        const isFullyFunctional = results.auth.status === 'success' &&
+            results.firestore_write === 'success' &&
+            results.firestore_read.status === 'success';
+
+        res.status(isFullyFunctional ? 200 : 207).json({
+            success: isFullyFunctional,
+            firebase_status: 'initialized',
+            results
         });
     } catch (error) {
         res.status(500).json({
             success: false,
-            error: error.message,
-            code: error.code
-        });
-    }
-});
-
-// 3. Auth handshake test (List 1 user)
-router.get('/auth-test', async (req, res) => {
-    try {
-        const listUsersResult = await admin.auth().listUsers(1);
-        res.json({
-            success: true,
-            message: "Can communicate with Firebase Auth",
-            users_found: listUsersResult.users.length
-        });
-    } catch (error) {
-        res.status(500).json({
-            success: false,
-            error: error.message,
-            code: error.code
+            error: "Connectivity test failed spectacularly",
+            details: error.message
         });
     }
 });
