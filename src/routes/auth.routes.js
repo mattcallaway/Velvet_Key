@@ -16,7 +16,22 @@ const { verifyFirebaseToken } = require('../middleware/auth.middleware');
  * @access  Private (requires Firebase token)
  * @body    { firstName, lastName, dateOfBirth, role?, phoneNumber? }
  */
-router.post('/register', verifyFirebaseToken, authController.register);
+const { body } = require('express-validator');
+const { handleValidationErrors } = require('../middleware/validation.middleware');
+
+router.post(
+    '/register',
+    verifyFirebaseToken,
+    [
+        body('firstName').trim().notEmpty().withMessage('First name is required').escape(),
+        body('lastName').trim().notEmpty().withMessage('Last name is required').escape(),
+        body('dateOfBirth').isISO8601().toDate().withMessage('Valid date of birth required'),
+        body('role').optional().isIn(['GUEST', 'HOST']).withMessage('Invalid role'),
+        body('phoneNumber').optional().isMobilePhone().withMessage('Invalid phone number'),
+        handleValidationErrors
+    ],
+    authController.register
+);
 
 /**
  * @route   POST /api/auth/login

@@ -1,9 +1,12 @@
 require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
+const helmet = require('helmet');
+const xss = require('xss-clean');
+const rateLimit = require('express-rate-limit');
 const userRoutes = require('./routes/user.routes');
 const rentalRoutes = require('./routes/rental.routes');
-const bookingRoutes = require('./routes/booking.routes');
+const bookingRoutes = require('./routes/bookings.routes');
 const reviewRoutes = require('./routes/review.routes');
 
 const app = express();
@@ -26,8 +29,24 @@ const corsOptions = {
 
 app.use(cors(corsOptions));
 
+app.use(cors(corsOptions));
+
+// Set security HTTP headers
+app.use(helmet());
+
+// Data sanitization against XSS
+app.use(xss());
+
+// Limit requests from same API
+const limiter = rateLimit({
+    max: 100, // Limit each IP to 100 requests per 15 mins
+    windowMs: 15 * 60 * 1000,
+    message: 'Too many requests from this IP, please try again in 15 minutes!'
+});
+app.use('/api', limiter);
+
 // Body parsing middleware
-app.use(express.json());
+app.use(express.json({ limit: '10kb' })); // Limit body size
 app.use(express.urlencoded({ extended: true }));
 
 // API routes

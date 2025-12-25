@@ -118,6 +118,7 @@ Existing rental marketplace platforms (Airbnb, VRBO) don't adequately serve the 
 - **Phase 10: Payment Integration (Stripe)**: Handling transactions and security deposits.
 - **Phase 11: Real-time Communication**: Host-guest messaging and notifications.
 - **Phase 12: Admin Control Plane**: Dashboard for content moderation.
+- **Phase 13: Security & Hardening**: Rate limiting, DDOS protection, inputs sanitization, and audit logs.
 
 ### Backlog / Future Tasks
 - [ ] **Extended Profile Schema (Post-UI Overhaul)**
