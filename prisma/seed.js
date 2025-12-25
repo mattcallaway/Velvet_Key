@@ -73,7 +73,7 @@ async function main() {
         {
             title: 'The Midnight Penthouse',
             description: 'Experience the pinnacle of luxury in this exclusive downtown penthouse. Features a private rooftop infinity pool, floor-to-ceiling windows with panoramic city views, and a state-of-the-art sound system.',
-            propertyType: 'PENTHOUSE',
+            propertyType: 'APARTMENT',
             addressLine1: '101 Skyline Dr',
             city: 'Los Angeles',
             state: 'CA',
@@ -91,7 +91,7 @@ async function main() {
         {
             title: 'The Velvet Lounge',
             description: 'A discreet and moodily lit sanctuary perfect for intimate gatherings. Features a fully stocked vintage bar, velvet seating, and an atmosphere of pure sophistication.',
-            propertyType: 'LOFT',
+            propertyType: 'APARTMENT',
             addressLine1: '55 Secret Alley',
             city: 'New York',
             state: 'NY',
@@ -108,7 +108,7 @@ async function main() {
         {
             title: 'Neon Industrial Loft',
             description: 'Raw concrete meets neon art in this edgy industrial loft. Perfect for photoshoots or pre-club drinks.',
-            propertyType: 'LOFT',
+            propertyType: 'APARTMENT',
             addressLine1: '777 Warehouse District',
             city: 'Chicago',
             state: 'IL',
