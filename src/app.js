@@ -1,6 +1,10 @@
 require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
+const userRoutes = require('./routes/user.routes');
+const rentalRoutes = require('./routes/rental.routes');
+const bookingRoutes = require('./routes/booking.routes');
+const reviewRoutes = require('./routes/review.routes');
 
 const app = express();
 const requestId = require('./middleware/requestId');
@@ -27,8 +31,10 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // API routes
-const apiRoutes = require('./routes');
-app.use('/api', apiRoutes);
+app.use('/api/users', userRoutes);
+app.use('/api/rentals', rentalRoutes);
+app.use('/api/bookings', bookingRoutes);
+app.use('/api/reviews', reviewRoutes);
 
 // Health check (Mounting the router directly as well for root access)
 const healthRoutes = require('./routes/health');

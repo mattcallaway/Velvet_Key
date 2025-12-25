@@ -85,15 +85,15 @@ Existing rental marketplace platforms (Airbnb, VRBO) don't adequately serve the 
 - ✅ **Option B Search** active on Linode.
 - ✅ **Host Activity Logs** functional on Linode.
 - ✅ **Shared Contract** reconciled between App/Server.
+- ✅ **Mobile App Connected**: Full connectivity between React Native app and Linode API.
 
 **In Progress:**
-- 🔄 Phase 9: Mobile UI Integration (React Native).
-- 🔄 Continuous verification of CORS and Firewall settings.
+- 🔄 Phase 9: Mobile UI Integration (React Native) - **Polishing Phase**.
 
 **Next Immediate Steps:**
-1. Open port 4000 on Linode (`ufw allow 4000/tcp`).
-2. Implement Phase 7: **Reviews & Trust** (Aggregated ratings).
-3. Connect Mobile Client to production `CONTRACT.md` endpoints.
+1. ✅ Open port 4000 on Linode (`ufw allow 4000/tcp`).
+2. ✅ Connect Mobile Client to production `CONTRACT.md` endpoints.
+3. Implement Phase 7: **Reviews & Trust** (Aggregated ratings).
 
 ---
 
@@ -102,12 +102,13 @@ Existing rental marketplace platforms (Airbnb, VRBO) don't adequately serve the 
 ### Short-Term (Next 2 Weeks)
 ### [ACTIVE] Phase 9: Mobile UI Integration
 - **Goal**: Implement "Modern Marketplace — After Dark" aesthetic.
-- **Status**: **UI Overhaul Complete** (Login, Register, Browse, Search, Details).
+- **Status**: **MVP Released to Alpha** (Connected to Prod).
 - **Key Changes**:
   - Dark-first theme (`#121212`).
   - 2-Step Registration Wizard.
   - Immersive Browse & Detail screens with sticky footers.
   - "Discovery" search bar and gold/red filter logic.
+  - **Real Data**: Live listings now serving from Linode.
 
 **Phase 7: Reviews & Ratings**
 - Bidirectional review system.
