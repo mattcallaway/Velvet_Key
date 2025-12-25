@@ -4,8 +4,8 @@ const cors = require('cors');
 const helmet = require('helmet');
 const xss = require('xss-clean');
 const rateLimit = require('express-rate-limit');
-const userRoutes = require('./routes/user.routes');
-const rentalRoutes = require('./routes/rental.routes');
+const userRoutes = require('./routes/users.routes');
+const rentalRoutes = require('./routes/rentals.routes');
 const bookingRoutes = require('./routes/bookings.routes');
 const reviewRoutes = require('./routes/review.routes');
 
