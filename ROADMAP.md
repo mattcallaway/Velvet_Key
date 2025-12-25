@@ -1,6 +1,6 @@
 # Velvet Key API - Project Roadmap
 
-**Last Updated**: December 24, 2025  
+**Last Updated**: December 25, 2025  
 **Project Status**: Dev-Complete (Core MVP) - Ready for Frontend Integration
 **Version**: 0.4.0 (Dev-Complete)
 
@@ -116,9 +116,14 @@ Existing rental marketplace platforms (Airbnb, VRBO) don't adequately serve the 
 
 ### Medium-Term (Next 1-2 Months)
 - **Phase 10: Payment Integration (Stripe)**: Handling transactions and security deposits.
-- **Phase 11: Real-time Communication**: Host-guest messaging and notifications.
+### [COMPLETED] Phase 11: Real-time Communication
+- **Implemented**: Messaging system with separate `Conversation` and `Message` models in PostgreSQL.
+- **Features**: Support for subjects, attachments, and access control list logic.
+- **REST API**: Create/Read endpoints established.
+
 - **Phase 12: Admin Control Plane**: Dashboard for content moderation.
-- **Phase 13: Security & Hardening**: Rate limiting, DDOS protection, inputs sanitization, and audit logs.
+### [COMPLETED] Phase 13: Security & Hardening
+- **Implemented**: Rate limiting (100 req/15min), HPP parameter pollution protection, Helmet security headers, and input sanitization.
 
 ### Backlog / Future Tasks
 - [ ] **Extended Profile Schema (Post-UI Overhaul)**

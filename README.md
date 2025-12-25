@@ -2,8 +2,8 @@
 
 > **The Privacy-First, Adult-Oriented Rental Marketplace Backend**
 
-![Status](https://img.shields.io/badge/Status-Dev_Complete-success)
-![Version](https://img.shields.io/badge/Version-0.4.0-blue)
+![Status](https://img.shields.io/badge/Status-Beta_Security_Hardened-success)
+![Version](https://img.shields.io/badge/Version-0.5.0-blue)
 ![License](https://img.shields.io/badge/License-Proprietary-red)
 
 ## 📖 Table of Contents
@@ -81,6 +81,11 @@ The booking system follows a strict state transition logic to prevent errors:
 ### 5. Host Audit Logs (Phase 8)
 -   **Transparency**: Every action (Edit Listing, Accept Booking) is logged to Firestore.
 -   **Feed**: Hosts can see a "Activity Feed" in their dashboard to track co-host actions or system events.
+
+### 6. Real-time Communication (Phase 11)
+-   **Messaging**: Secure in-app messaging between Guests and Hosts.
+-   **Context**: Conversations support custom subjects and attachments.
+-   **Privacy**: Strict access control prevents unauthorized reading of threads.
 
 ---
 

@@ -47,6 +47,11 @@ model User {
   reviewsWritten    Review[]  @relation("ReviewAuthor")
   reviewsReceived   Review[]  @relation("ReviewSubject")
   
+  // Messaging
+  conversationsOne  Conversation[] @relation("ParticipantOne")
+  conversationsTwo  Conversation[] @relation("ParticipantTwo")
+  messagesSent      Message[]      @relation("MessageSender")
+  
   @@index([email])
   @@index([firebaseUid])
   @@index([role])
@@ -207,4 +212,44 @@ model Review {
 enum ReviewType {
   GUEST_TO_HOST
   HOST_TO_GUEST
+}
+
+model Conversation {
+  id        String   @id @default(uuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Discovery & Context
+  subject          String?   // Custom or Pre-defined subject line
+  
+  participantOneId String
+  participantTwoId String
+
+  participantOne   User @relation("ParticipantOne", fields: [participantOneId], references: [id])
+  participantTwo   User @relation("ParticipantTwo", fields: [participantTwoId], references: [id])
+  
+  messages         Message[]
+  
+  @@unique([participantOneId, participantTwoId]) 
+  @@index([participantOneId])
+  @@index([participantTwoId])
+}
+
+model Message {
+  id             String   @id @default(uuid())
+  conversationId String
+  senderId       String
+  content        String?  // Optional if only sending attachments
+  
+  // Media
+  attachments    Json     @default("[]") // [{ url: string, type: string, name: string }]
+  
+  readAt         DateTime?
+  createdAt      DateTime @default(now())
+
+  conversation   Conversation @relation(fields: [conversationId], references: [id])
+  sender         User         @relation("MessageSender", fields: [senderId], references: [id])
+
+  @@index([conversationId])
+  @@index([senderId])
 }

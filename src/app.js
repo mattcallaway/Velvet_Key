@@ -4,10 +4,12 @@ const cors = require('cors');
 const helmet = require('helmet');
 const xss = require('xss-clean');
 const rateLimit = require('express-rate-limit');
+const hpp = require('hpp');
 const userRoutes = require('./routes/users.routes');
 const rentalRoutes = require('./routes/rentals.routes');
 const bookingRoutes = require('./routes/bookings.routes');
 const reviewRoutes = require('./routes/review.routes');
+const messageRoutes = require('./routes/messages.routes');
 
 const app = express();
 const requestId = require('./middleware/requestId');
@@ -29,7 +31,6 @@ const corsOptions = {
 
 app.use(cors(corsOptions));
 
-app.use(cors(corsOptions));
 
 // Set security HTTP headers
 app.use(helmet());
@@ -49,11 +50,15 @@ app.use('/api', limiter);
 app.use(express.json({ limit: '10kb' })); // Limit body size
 app.use(express.urlencoded({ extended: true }));
 
+// Prevent Parameter Pollution
+app.use(hpp());
+
 // API routes
 app.use('/api/users', userRoutes);
 app.use('/api/rentals', rentalRoutes);
 app.use('/api/bookings', bookingRoutes);
 app.use('/api/reviews', reviewRoutes);
+app.use('/api/messages', messageRoutes);
 
 // Health check (Mounting the router directly as well for root access)
 const healthRoutes = require('./routes/health');

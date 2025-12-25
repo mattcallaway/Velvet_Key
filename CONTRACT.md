@@ -56,6 +56,13 @@ This document defines the shared contract between the **Velvet Key API** (Server
 |--------|------|--------|-------------|
 | GET | `/api/host/activity` | Host | Host-specific audit trail. |
 
+### Messaging
+| Method | Path | Access | Description |
+|--------|------|--------|-------------|
+| GET | `/api/messages/conversations` | Private | List all conversations. |
+| GET | `/api/messages/conversations/:id` | Private | Get messages in a thread. |
+| POST | `/api/messages/send` | Private | Send a message (Auto-create thread). |
+
 ---
 
 ## 4. Payload Schemas
