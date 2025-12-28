@@ -1,8 +1,8 @@
 # Velvet Key API - Project Roadmap
 
-**Last Updated**: December 25, 2025  
-**Project Status**: Dev-Complete (Core MVP) - Ready for Frontend Integration
-**Version**: 0.4.0 (Dev-Complete)
+**Last Updated**: December 28, 2025  
+**Project Status**: Security Hardening Complete  
+**Version**: 0.5.0 (Secure Beta)
 
 ---
 
@@ -77,12 +77,12 @@ Existing rental marketplace platforms (Airbnb, VRBO) don't adequately serve the 
 
 ## 📍 Where We Are Now
 
-### Current Status (December 24, 2025)
+### Current Status (December 28, 2025)
 
 **Completed:**
-- ✅ Full database schema implemented.
+- ✅ Full database schema implemented + **Trust Models (Reports/Blocks)**.
 - ✅ All core MVP endpoints (Auth, Users, Rentals, Bookings) are production-ready.
-- ✅ **Option B Search** active on Linode.
+- ✅ **Security Hardening Suite ("Bar the Doors")** Implemented.
 - ✅ **Host Activity Logs** functional on Linode.
 - ✅ **Shared Contract** reconciled between App/Server.
 - ✅ **Mobile App Connected**: Full connectivity between React Native app and Linode API.
@@ -91,9 +91,8 @@ Existing rental marketplace platforms (Airbnb, VRBO) don't adequately serve the 
 - 🔄 Phase 9: Mobile UI Integration (React Native) - **Polishing Phase**.
 
 **Next Immediate Steps:**
-1. ✅ Open port 4000 on Linode (`ufw allow 4000/tcp`).
-2. ✅ Connect Mobile Client to production `CONTRACT.md` endpoints.
-3. Implement Phase 7: **Reviews & Trust** (Aggregated ratings).
+1. ✅ Connect Mobile Client to production `CONTRACT.md` endpoints.
+2. Implement Phase 7: **Reviews & Trust** (Aggregated ratings).
 
 ---
 
@@ -122,8 +121,18 @@ Existing rental marketplace platforms (Airbnb, VRBO) don't adequately serve the 
 - **REST API**: Create/Read endpoints established.
 
 - **Phase 12: Admin Control Plane**: Dashboard for content moderation.
-### [COMPLETED] Phase 13: Security & Hardening
-- **Implemented**: Rate limiting (100 req/15min), HPP parameter pollution protection, Helmet security headers, and input sanitization.
+### [COMPLETED] Phase 13: Security & Hardening ("Bar the Doors")
+- **Anti-Stalking ("Black Mirror Suite")**:
+  - **EXIF Stripping**: `sharp` removes GPS metadata from all uploads.
+  - **Location Fuzzing**: 200-500m random offsets for non-booked viewers.
+  - **Anti-Scraping**: Strict 10req/hr limits on profile views.
+- **Infrastructure Hardening**:
+  - **Strict Helmet**: HSTS (1 year), CSP, noSniff.
+  - **Tiered Rate Usage**: Global (200/15m), Auth (10/15m), Writes (50/15m).
+  - **Canary Routes**: `/admin.php` triggers critical alerts.
+- **Trust Architecture**:
+  - **Fail-Closed Deletion**: Cascading hard-wipes of PII across DB/Auth/Storage.
+  - **Audit Redaction**: Automatic scrubbing of sensitive keys in logs.
 
 ### Backlog / Future Tasks
 - [ ] **Extended Profile Schema (Post-UI Overhaul)**

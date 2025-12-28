@@ -2,260 +2,215 @@
 
 > **The Privacy-First, Adult-Oriented Rental Marketplace Backend**
 
-![Status](https://img.shields.io/badge/Status-Beta_Security_Hardened-success)
+![Status](https://img.shields.io/badge/Status-Secure_Beta-success)
 ![Version](https://img.shields.io/badge/Version-0.5.0-blue)
+![Security](https://img.shields.io/badge/Guardrails-Maximum-red)
 ![License](https://img.shields.io/badge/License-Proprietary-red)
 
+---
+
 ## 📖 Table of Contents
-1. [Project Vision](#-project-vision)
-2. [Architecture & Technology](#-architecture--technology)
-3. [Key Features](#-key-features)
-4. [Security & Hardening](#-security--hardening)
-5. [API Documentation](#-api-documentation)
-6. [Database Schema](#-database-schema)
-7. [Installation & Setup](#-installation--setup)
-8. [Deployment Workflow](#-deployment-workflow)
-9. [Project Structure](#-project-structure)
+
+1.  [🔒 Security Architecture ("Bar the Doors")](#-security-architecture-bar-the-doors)
+2.  [👁️ Project Vision](#-project-vision)
+3.  [🏗️ Technical Architecture](#-technical-architecture)
+4.  [💾 Data & Privacy Models](#-data--privacy-models)
+5.  [🌟 Key Features](#-key-features)
+6.  [📚 API Documentation](#-api-documentation)
+7.  [💻 Setup & Development](#-setup--development)
+8.  [🔄 Deployment](#-deployment)
+9.  [📂 Project Structure](#-project-structure)
+
+---
+
+## 🔒 Security Architecture ("Bar the Doors")
+
+Velvet Key employs an aggressive, **Fail-Closed security model** designed to protect users from stalking, doxxing, and data leaks.
+
+### 🛡️ "The Black Mirror Suite" (Anti-Stalking)
+We assume every piece of metadata can be weaponized.
+*   **EXIF Stripping**: Middleware (`sharp`) physically rewrites all uploaded images to remove GPS coordinates and camera models before storage.
+*   **Location Fuzzing**: The API **never** returns exact coordinates to strangers. A cryptographic RNG applies a 200-500m offset to map pins. Exact address is only revealed after a **Confirmed Booking**.
+*   **Anti-Scraping**: User profiles have strict rate limits (10 views/hour) to prevent harvesting of member lists.
+
+### 🧱 Hard Infrastructure
+*   **Strict Helmet Policy**: HSTS (1 Year), CSP (Restricted), and `noSniff` enforced globally.
+*   **Tiered Rate Limiting**:
+    *   **Auth**: 10 requests / 15 min (Brute Force Protection).
+    *   **Writes**: 50 requests / 15 min (Spam Protection).
+    *   **Global**: 200 requests / 15 min (DDoS Protection).
+*   **Canary Routes**: Accessing `/admin.php` or `/.env` triggers a **CRITICAL** audit alert and potential IP ban.
+
+### 🧹 Data Lifecycle
+*   **Fail-Closed Deletion**: Deleting an account triggers an atomic transaction that:
+    1.  Wipes PII from PostgreSQL.
+    2.  Deletes all Rentals and Messages.
+    3.  Anonymizes Reviews and Bookings (Stats preserved, Identity lost).
+    4.  Purges Firebase Auth & Storage buckets.
+*   **Log Redaction**: `AuditService` automatically scrubs emails, names, tokens, and addresses from all logs before writing to Firestore or Stdout.
 
 ---
 
 ## 👁️ Project Vision
 
-**Velvet Key** addresses a critical gap in the hospitality market: a safe, trusted, and high-end platform for adult lifestyle travel. Mainstream platforms (Airbnb, VRBO) often discriminate against or ban users for lifestyle-related activities. Velvet Key provides:
+**Velvet Key** is the safe haven for adult lifestyle travel. We bridge the gap where Airbnb fear to tread.
 
--   **Uncompromising Privacy**: Your data is sacred. We use minimal data retention and strict access controls.
--   **Vetted Community**: A bidrectional review system ensuring hosts and guests can trust one another.
--   **Specialized Search**: Find rentals with specific amenities like "Dungeon", "Soundproof", "Sybian", or "Group Play Areas".
--   **Legal Safety**: Explicit 21+ age verification and liability waivers built-in.
+*   **Uncompromising Privacy**: Your kink is your business. Our architecture proves it.
+*   **Vetted Community**: A bidirectional review system ensures mutual trust.
+*   **Specialized Search**: Find "Dungeons", "Sybian Machines", or "Soundproof Rooms" with dedicated filters.
+*   **Legal Clarity**: Built-in 21+ verification and liability structure.
 
 ---
 
-## 🏗️ Architecture & Technology
+## 🏗️ Technical Architecture
 
-We use a modern, scalable, and type-safe stack designed for performance and reliability.
+### Stack
+| Component | Technology | Rationale |
+| :--- | :--- | :--- |
+| **Runtime** | **Node.js v20+** | High-concurrency event loop for real-time messaging. |
+| **API** | **Express.js** | Battle-tested Middleware architecture for security chains. |
+| **DB (Relational)** | **PostgreSQL 14** | ACID compliance for critical Booking/Financial data. |
+| **ORM** | **Prisma** | Type-safe schema management and migrations. |
+| **Logs (NoSQL)** | **Firestore** | Scalable, structured audit logging for Host Activity Feeds. |
+| **Auth** | **Firebase Auth** | Industry-standard identity (MFA, Phone Auth, Google) without PII on our metal. |
+| **Storage** | **Firebase Storage** | High-res image hosting with signed URL capabilities. |
+| **Security** | **Sharp / Helmet** | Image sanitization and HTTP hardening. |
 
-| Layer | Technology | Description |
-|-------|------------|-------------|
-| **Runtime** | **Node.js v18+** | High-performance, event-driven JavaScript runtime. |
-| **Framework** | **Express.js** | Robust REST API framework with custom middleware. |
-| **Database** | **PostgreSQL 14** | Relational data integrity for Bookings and Users. |
-| **ORM** | **Prisma** | Type-safe database queries and schema management. |
-| **Auth** | **Firebase Auth** | Industry-standard identity management (Tokens, MFA). |
-| **Storage** | **Firebase Storage** | Scalable object storage for high-res listing photos. |
-| **Logs** | **Google Firestore** | Real-time structured audit logs for Host Activity feeds. |
-| **Security** | **Helmet / Rate-Limit** | OWASP-grade security headers and DDOS protection. |
+### System Diagram
+```mermaid
+graph TD
+    Client[Mobile App / Web] -->|HTTPS| LoadBalancer[Nginx / Cloudflare]
+    LoadBalancer -->|Port 4000| API[Node.js API]
+    
+    API -->|Auth| Firebase[Firebase Auth]
+    API -->|Queries| Postgres[(PostgreSQL)]
+    API -->|Audit Logs| Firestore[(Firestore)]
+    API -->|Uploads| Storage[(Firebase Storage)]
+    
+    subgraph "Trust & Safety Boundary"
+        API -- Strip EXIF --> Sharp[Image Processor]
+        API -- Redact PII --> Logger[Audit Service]
+        API -- Fuzz GPS --> Response[Client Response]
+    end
+```
 
-### Why this stack?
--   **Prisma + Postgres**: Ensures data consistency for financial transactions (Bookings).
--   **Firebase**: Offloads complex security (Password hashing, 2FA) to Google's infrastructure while keeping business logic local.
--   **Node/Express**: Allows for rapid iteration and sharing logic with the React Native client.
+---
+
+## 💾 Data & Privacy Models
+
+### User (PostgreSQL)
+*   `id`: UUID (Reference only)
+*   `firebaseUid`: Link to Auth
+*   `email`: **Critical PII** (Strict Access)
+*   `moderationStatus`: Enum (`ACTIVE`, `SHADOWBANNED`, `SOFT_HIDDEN`)
+
+### Trust Models
+*   `Report`: Tracks abuse (`entityType`: User/Rental/Message). Triggers auto-moderation.
+*   `Block`: Bidirectional blocking matrix.
+
+### Rental (PostgreSQL)
+*   `latitude/longitude`: **Fuzzed** on read.
+*   `images`: JSON Array (Cleaned URLs).
 
 ---
 
 ## 🌟 Key Features
 
-### 1. Robust User Management
--   **Registration Wizard**: Multi-step sign-up flow collecting User details, DOB (21+ check), and optional "Persona" details.
--   **Identity**: Firebase UID linked to local Postgres ID for faster joins.
--   **Profiles**: Edit bio, avatar, and relationship status.
-
-### 2. Advanced Rental Engine
--   **CRUD**: Hosts can Create, Read, Update, and Delete listings.
--   **Image Gallery**: Upload up to 10 high-res images per listing.
--   **Dynamic Amenities**: Filters for 50+ specific amenities stored as searchable JSON.
--   **Hybrid Search**: Backend filtering logic that handles complex queries ("Show me Villas in Nevada with a Hot Tub").
-
-### 3. State-Machine Booking Flow
-The booking system follows a strict state transition logic to prevent errors:
-1.  `PENDING`: Guest requests dates.
-2.  `CONFIRMED`: Host approves the request.
-3.  `DECLINED`: Host rejects the request.
-4.  `CANCELLED`: Guest or Host cancels (triggering refund logic).
-5.  `COMPLETED`: Automated after checkout date passes.
-
-### 4. Bidirectional Reviews (Phase 7)
--   **Guest Reviews**: Rate the Property and Host (1-5 Stars).
--   **Host Reviews**: Rate the Guest behavior.
--   **Aggregation**: Automatic calculation of "Average Rating" on profiles and listings.
-
-### 5. Host Audit Logs (Phase 8)
--   **Transparency**: Every action (Edit Listing, Accept Booking) is logged to Firestore.
--   **Feed**: Hosts can see a "Activity Feed" in their dashboard to track co-host actions or system events.
-
-### 6. Real-time Communication (Phase 11)
--   **Messaging**: Secure in-app messaging between Guests and Hosts.
--   **Context**: Conversations support custom subjects and attachments.
--   **Privacy**: Strict access control prevents unauthorized reading of threads.
-
----
-
-## 🛡️ Security & Hardening (Phase 13)
-
-We take security seriously. The API is hardened against common web vulnerabilities.
-
--   **Rate Limiting**:
-    -   Global: 100 requests / 15 min per IP.
-    -   Auth Routes: Stricter limits to prevent Brute Force.
--   **HTTP Headers (Helmet)**:
-    -   `Strict-Transport-Security` (HSTS)
-    -   `X-Content-Type-Options: nosniff`
-    -   `X-Frame-Options: DENY`
--   **Input Sanitization**:
-    -   `xss-clean`: Prevents Cross-Site Scripting attacks in JSON bodies.
-    -   `express-validator`: Strict type checking on all inputs (Email, UUIDs, Dates).
--   **CORS**: Whitelisted origins only.
+1.  **Robust User Management**: Multi-step registration, 21+ checks, Role management (Host/Guest).
+2.  **Advanced Rental Engine**: CRUD listings with dynamic amenity filters and Option B hybrid search.
+3.  **Booking State Machine**: `REQUESTED` -> `CONFIRMED` -> `COMPLETED` strict flow.
+4.  **Trust & Safety**: Block/Report logic, automated Shadowbanning, and Admin overrides.
+5.  **Audit Logs**: Hosts see exactly who edited what and when in their dashboard.
 
 ---
 
 ## 📚 API Documentation
 
-### Base URL
--   **Production**: `http://172.233.140.74:4000/api`
--   **Development**: `http://localhost:4000/api`
+### Connection
+*   **Production**: `http://172.233.140.74:4000/api`
+*   **Local**: `http://localhost:4000/api`
 
-### Authentication Header
-All private routes require a valid Firebase ID Token:
-```http
-Authorization: Bearer <FIREBASE_ID_TOKEN>
-```
+### Auth Header
+`Authorization: Bearer <FIREBASE_ID_TOKEN>`
 
-### Core Endpoints
+### Endpoints (Abbreviated)
 
-#### User
--   `POST /auth/register` - Create account.
--   `POST /auth/login` - Sync Firebase user to Postgres.
--   `GET /auth/me` - Get full profile.
+| Method | Endpoint | Description | Guardrails |
+| :--- | :--- | :--- | :--- |
+| `POST` | `/auth/register` | Create Account | Rate: 10/15m |
+| `GET` | `/users/:id` | Get Profile | Rate: 10/hr (Public) |
+| `POST` | `/users/delete` | **Delete Account** | **IRREVERSIBLE** |
+| `GET` | `/rentals` | Search Listings | Location Fuzzed |
+| `POST` | `/rentals` | Create Listing | EXIF Stripped |
+| `POST` | `/trust/report` | Report User | Anon to Target |
+| `POST` | `/trust/block` | Block User | Bidirectional |
 
-#### Rentals
--   `GET /rentals` - Search listings (Query: `city`, `guests`, `priceMin`).
--   `POST /rentals` - Create listing (Host only).
--   `GET /rentals/:id` - Get details.
-
-#### Bookings
--   `POST /bookings` - Request a stay.
--   `GET /bookings` - Get my trips.
--   `PATCH /bookings/:id/status` - Host Accept/Decline.
-
-#### Reviews
--   `POST /reviews` - Submit review `{ rentalId, rating, comment }`.
--   `GET /reviews/rental/:id` - Read rental reviews.
-
-> *For a complete specification including request/response bodies, see [CONTRACT.md](./CONTRACT.md).*
+> *See [CONTRACT.md](./CONTRACT.md) for full JSON specs.*
 
 ---
 
-## 💾 Database Schema
-
-**User**
-- `id`: UUID (PK)
-- `email`: String (Unique)
-- `firstName`, `lastName`: String
-- `role`: Enum (GUEST, HOST, ADMIN)
-
-**Rental**
-- `id`: UUID (PK)
-- `hostId`: UUID (FK -> User)
-- `title`: String
-- `pricePerNight`: Float
-- `amenities`: JSON String (Array)
-- `images`: JSON String (Array of URLs)
-
-**Booking**
-- `id`: UUID (PK)
-- `status`: Enum (PENDING, CONFIRMED...)
-- `totalPrice`: Float
-- `checkInDate`, `checkOutDate`: DateTime
-
-**Review**
-- `id`: UUID (PK)
-- `rating`: Int (1-5)
-- `comment`: Text
-
----
-
-## 💻 Installation & Setup
+## 💻 Setup & Development
 
 ### Prerequisites
--   Node.js v18.0.0 or higher
--   PostgreSQL 14 locally installed
--   Firebase Admin Service Account (`serviceAccountKey.json`)
+*   Node.js v18+
+*   PostgreSQL 14+
+*   Firebase Service Account (`firebase-service-account.json`)
 
-### 1. Clone & Install
-```bash
-git clone https://github.com/mattcallaway/Velvet_Key.git
-cd Velvet_Key/api
-npm install
-```
-
-### 2. Environment Configuration
-Create a `.env` file in the root:
-```env
-# Server
-PORT=4000
-NODE_ENV=development
-
-# Database
-DATABASE_URL="postgresql://postgres:password@localhost:5432/velvet_key?schema=public"
-
-# Firebase (Client)
-FIREBASE_API_KEY=...
-FIREBASE_PROJECT_ID=...
-
-# Security
-CORS_ORIGINS=http://localhost:3000,http://172.233.140.74
-```
-
-### 3. Database Setup
-Run migrations to create tables:
-```bash
-npx prisma migrate dev --name init
-```
-Seed the database with test data:
-```bash
-npx prisma seed
-```
-
-### 4. Run Locally
-```bash
-npm run dev
-# Server starting on port 4000...
-# Database connected...
-```
-
----
-
-## 🔄 Deployment Workflow
-
-We use a simple, robust git-based deployment to our Linode server.
-
-1.  **Local**: Standard Git flow.
+### Quick Start
+1.  **Clone**:
     ```bash
-    git add .
-    git commit -m "feat: new cool thing"
-    git push origin main
+    git clone https://github.com/mattcallaway/Velvet_Key.git
+    cd velvet-key-api
+    ```
+2.  **Install**:
+    ```bash
+    npm install
+    # Installs sharp (native deps required)
+    ```
+3.  **Env**:
+    ```env
+    DATABASE_URL="postgresql://user:pass@localhost:5432/velvet_key"
+    FIREBASE_PROJECT_ID=...
+    CORS_ORIGINS=http://localhost:3000
+    ```
+4.  **Database**:
+    ```bash
+    npx prisma migrate dev
+    npx prisma seed
+    ```
+5.  **Run**:
+    ```bash
+    npm run dev
     ```
 
-2.  **Server (Linode)**:
-    -   SSH into server.
-    -   Pull changes: `git pull origin main`
-    -   Install deps: `npm install --production`
-    -   Migrate DB: `npx prisma migrate deploy`
-    -   Restart Process: `pm2 restart velvet-key-api`
+---
+
+## 🔄 Deployment
+
+**Standard Workflow**:
+1.  Push to `main`.
+2.  SSH into Linode.
+3.  `git pull`, `npm install`, `npx prisma migrate deploy`.
+4.  `pm2 restart velvet-key-api`.
+
+**Security Checks**:
+*   `npm audit` must return 0 vulnerabilities.
+*   `SECURITY_GATES.md` checks must be passed.
 
 ---
 
-## 📁 Project Structure
+## 📂 Project Structure
 
 ```
 src/
-├── config/         # Env vars and Firebase setup
-├── controllers/    # Request handlers (Logic)
-├── middleware/     # Auth, Validation, Error Handling
-├── routes/         # Express Route definitions
-├── services/       # Database access (Prisma calls)
-├── utils/          # Helpers (Response formatting)
-└── app.js          # App Entry point
-prisma/
-├── schema.prisma   # DB Schema definition
-└── seed.js         # Test data generator
+├── config/         # Sharp, Firebase, Env
+├── controllers/    # Business Logic
+├── middleware/     # Helmet, RateLimit, Auth
+├── routes/         # API Definitions
+├── services/       # Prisma & Logic Layer
+│   ├── audit.service.js  # PII Redaction
+│   ├── trust.service.js  # Block/Report
+│   └── rental.service.js # Location Fuzzing
+├── utils/          # Helpers
+└── app.js          # Entry Point (Hardened)
 ```

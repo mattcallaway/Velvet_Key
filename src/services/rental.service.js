@@ -51,11 +51,31 @@ async function createRental(hostId, data) {
 }
 
 /**
+ * Fuzz Location Helper
+ * Adds a random offset (approx 200-500m) to coordinates.
+ * This prevents triangulation of the exact address.
+ */
+function fuzzLocation(lat, lng) {
+    if (!lat || !lng) return { latitude: null, longitude: null };
+
+    // 0.004 degrees is approx 400-500 meters
+    const offsetLat = (Math.random() - 0.5) * 0.008;
+    const offsetLng = (Math.random() - 0.5) * 0.008;
+
+    return {
+        latitude: lat + offsetLat,
+        longitude: lng + offsetLng,
+        isApproximate: true
+    };
+}
+
+/**
  * Get rental by ID
  * @param {string} rentalId - Rental ID
+ * @param {string} [viewerId] - ID of the user viewing the rental (optional)
  * @returns {Promise<Object>} Rental details
  */
-async function getRentalById(rentalId) {
+async function getRentalById(rentalId, viewerId = null) {
     const rental = await prisma.rental.findUnique({
         where: { id: rentalId },
         include: {
@@ -82,12 +102,35 @@ async function getRentalById(rentalId) {
                     },
                 },
             },
+            bookings: viewerId ? {
+                where: {
+                    guestId: viewerId,
+                    status: 'CONFIRMED'
+                },
+                select: { id: true, status: true }
+            } : false
         },
     });
 
     if (!rental) {
         throw new NotFoundError('Rental not found');
     }
+
+    // Security Check: Hide exact location unless Viewer is Host or has Confirmed Booking
+    const isHost = viewerId && rental.hostId === viewerId;
+    const hasBooking = rental.bookings && rental.bookings.length > 0;
+
+    if (!isHost && !hasBooking) {
+        const fuzzed = fuzzLocation(rental.latitude, rental.longitude);
+        rental.latitude = fuzzed.latitude;
+        rental.longitude = fuzzed.longitude;
+        rental.addressLine1 = null; // Hide exact address
+        rental.addressLine2 = null;
+        rental.isApproximateLocation = true;
+    }
+
+    // Remove internal booking info from result
+    delete rental.bookings;
 
     return rental;
 }
@@ -284,8 +327,21 @@ async function searchRentals(filters) {
         prisma.rental.count({ where }),
     ]);
 
+    // Fuzz locations for search results (ALWAYS)
+    const safeRentals = rentals.map(r => {
+        const fuzzed = fuzzLocation(r.latitude, r.longitude);
+        return {
+            ...r,
+            latitude: fuzzed.latitude,
+            longitude: fuzzed.longitude,
+            addressLine1: null, // Never show address in search
+            addressLine2: null,
+            isApproximateLocation: true
+        };
+    });
+
     return {
-        rentals,
+        rentals: safeRentals,
         pagination: {
             page: parseInt(page),
             limit: take,

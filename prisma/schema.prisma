@@ -41,6 +41,10 @@ model User {
   updatedAt         DateTime  @updatedAt
   lastLoginAt       DateTime?
   
+  // Trust & Safety
+  moderationStatus  ModerationStatus @default(ACTIVE)
+  lastAuditedAt     DateTime?
+  
   // Relations
   ownedRentals      Rental[]  @relation("HostRentals")
   bookings          Booking[] @relation("GuestBookings")
@@ -52,6 +56,12 @@ model User {
   conversationsTwo  Conversation[] @relation("ParticipantTwo")
   messagesSent      Message[]      @relation("MessageSender")
   
+  // Trust Reporting
+  reportsMade       Report[]       @relation("Reporter")
+  reportsReceived   Report[]       @relation("Reported")
+  blocksMade        Block[]        @relation("Blocker")
+  blocksReceived    Block[]        @relation("Blocked")
+
   @@index([email])
   @@index([firebaseUid])
   @@index([role])
@@ -103,6 +113,7 @@ model Rental {
   // Status
   isActive          Boolean  @default(true)
   isApproved        Boolean  @default(false)
+  moderationStatus  ModerationStatus @default(ACTIVE)
   
   // Metadata
   createdAt         DateTime @default(now())
@@ -252,4 +263,85 @@ model Message {
 
   @@index([conversationId])
   @@index([senderId])
+}
+
+// --- TRUST & SAFETY START ---
+
+model Report {
+  id          String   @id @default(uuid())
+  reporterId  String
+  reportedId  String   // User ID being reported (subject)
+  
+  // Scope
+  entityType  ReportEntityType
+  entityId    String   // ID of the User, Rental, Message, or Review
+  
+  // Content
+  reason      ReportReason
+  details     String?
+  
+  // Status
+  status      ReportStatus @default(PENDING)
+  notes       String?      // Admin internal notes
+  
+  // Metadata
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  resolvedAt  DateTime?
+  resolvedBy  String?      // Admin ID
+
+  // Relations
+  reporter    User     @relation("Reporter", fields: [reporterId], references: [id])
+  reported    User     @relation("Reported", fields: [reportedId], references: [id])
+  
+  @@index([status])
+  @@index([reportedId])
+  @@index([reporterId])
+}
+
+enum ReportEntityType {
+  USER
+  RENTAL
+  MESSAGE
+  REVIEW
+}
+
+enum ReportReason {
+  SPAM
+  SCAM
+  HARASSMENT
+  HATE_SPEECH
+  VIOLENCE
+  SEXUAL_CONTENT
+  OFF_PLATFORM
+  OTHER
+}
+
+enum ReportStatus {
+  PENDING
+  INVESTIGATING
+  ACTION_TAKEN
+  DISMISSED
+}
+
+model Block {
+  id          String   @id @default(uuid())
+  blockerId   String
+  blockedId   String
+  createdAt   DateTime @default(now())
+
+  blocker     User     @relation("Blocker", fields: [blockerId], references: [id])
+  blocked     User     @relation("Blocked", fields: [blockedId], references: [id])
+
+  @@unique([blockerId, blockedId])
+  @@index([blockerId])
+  @@index([blockedId])
+}
+
+// New Enums & Modifications
+enum ModerationStatus {
+  ACTIVE
+  SHADOWBANNED
+  SOFT_HIDDEN
+  HARD_REMOVED
 }

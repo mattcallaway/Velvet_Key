@@ -1,6 +1,7 @@
 const multer = require('multer');
+const sharp = require('sharp');
 
-// Use memory storage for processing files before uploading to Firebase
+// Use memory storage to process files with Sharp before saving
 const storage = multer.memoryStorage();
 
 // File filter (only allow images)
@@ -15,13 +16,50 @@ const fileFilter = (req, file, cb) => {
     }
 };
 
+/**
+ * Image Processing Middleware
+ * 
+ * Strips EXIF metadata and standardizes image format.
+ * This is a critical Anti-Stalking measure (prevents GPS leakage).
+ */
+const processImages = async (req, res, next) => {
+    if (!req.files && !req.file) return next();
+
+    const files = req.files || [req.file];
+
+    try {
+        await Promise.all(
+            files.map(async (file) => {
+                // Buffer processing with Sharp
+                const processedBuffer = await sharp(file.buffer)
+                    .rotate() // Auto-rotate based on orientation
+                    .resize({ width: 1920, height: 1080, fit: 'inside', withoutEnlargement: true }) // Standardize size
+                    .toFormat('jpeg', { quality: 85 }) // Standardize format
+                    .withMetadata({ density: false }) // STRIP ALL EXIF METADATA (GPS, Camera, etc)
+                    .toBuffer();
+
+                file.buffer = processedBuffer;
+                file.mimetype = 'image/jpeg';
+            })
+        );
+        next();
+    } catch (error) {
+        console.error('Image processing failed:', error);
+        return res.status(500).json({ error: 'Image processing failed' });
+    }
+};
+
 const upload = multer({
     storage: storage,
     limits: {
-        fileSize: 5 * 1024 * 1024, // 5 MB limit
-        files: 10, // Max 10 files
+        fileSize: 10 * 1024 * 1024, // 10 MB limit (processed down later)
+        files: 10,
     },
     fileFilter: fileFilter,
 });
 
-module.exports = upload;
+// Export both the multer instance and the processing middleware
+module.exports = {
+    upload,
+    processImages
+};

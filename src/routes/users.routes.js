@@ -16,7 +16,16 @@ const {
  */
 
 // Public routes
-router.get('/:id', validateUserId, usersController.getUser);
+const rateLimit = require('express-rate-limit');
+
+// Anti-Scraping Limit: 10 requests per hour per IP for profile views
+const profileViewLimiter = rateLimit({
+    windowMs: 60 * 60 * 1000, // 1 hour
+    max: 10,
+    message: { error: 'Too many profile views. Please try again later.' }
+});
+
+router.get('/:id', profileViewLimiter, validateUserId, usersController.getUser);
 router.get('/:id/reviews', validateUserId, validatePagination, usersController.getUserReviews);
 
 // Protected routes (require authentication and ownership)
